@@ -260,6 +260,12 @@ class XiaomiVacuumDevice:
                 did = int(prop["did"])
                 value = prop["value"]
 
+                try:
+                    XiaomiVacuumProperty(did)
+                except ValueError:
+                    _LOGGER.debug("Skipping unknown property: %s = %s", did, value)
+                    continue
+
                 if did in self._dirty_data:
                     if self._dirty_data[did] != value:
                         _LOGGER.info(
