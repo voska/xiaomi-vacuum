@@ -1,7 +1,5 @@
 {
   "name": "Xiaomi Vacuum",
   "render_readme": false,
-  "homeassistant": "2022.8.0",
-  "zip_release": true,
-  "filename": "xiaomi_vacuum.zip"
+  "homeassistant": "2022.8.0"
 }
