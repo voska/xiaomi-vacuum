@@ -4,7 +4,7 @@ Integration tracks certain device properties and notifies HA on specific events 
 ### Cleanup started or finished
 Fires when cleanup job is completed or canceled/ended.
 
-#### `dreame_vacuum_task_status`
+#### `xiaomi_vacuum_task_status`
 - `entity_id`: Vacuum entity
 - `cleaning_mode`: Selected cleaning mode
 - `status`: Status
@@ -20,7 +20,7 @@ Fires when cleanup job is completed or canceled/ended.
 ### Consumable is depleted
 Fires when consumable life is ended.
 
-#### `dreame_vacuum_consumable`
+#### `xiaomi_vacuum_consumable`
 - `entity_id`: Vacuum entity
 - `consumable`: Consumable type
   - `main_brush`: Main brush must be replaced
@@ -34,7 +34,7 @@ Fires when consumable life is ended.
 ### Information
 Fires when certain job cannot be executed due to the user settings.
 
-#### `dreame_vacuum_information`
+#### `xiaomi_vacuum_information`
 - `entity_id`: Vacuum entity
 - `information`: Information type
   - `dust_collection`: Dust collection not performed due to the DnD settings
@@ -43,7 +43,7 @@ Fires when certain job cannot be executed due to the user settings.
 ### Warning
 Fires when there is a dismissible warning code on the device.
 
-#### `dreame_vacuum_warning`
+#### `xiaomi_vacuum_warning`
 - `entity_id`: Vacuum entity
 - `warning`: Warning description
 - `code`: Fault code of the warning
@@ -51,7 +51,7 @@ Fires when there is a dismissible warning code on the device.
 ### Error
 Fires when there is a fault code on the device.
 
-#### `dreame_vacuum_error`
+#### `xiaomi_vacuum_error`
 - `entity_id`: Vacuum entity
 - `error`: Error description
 - `code`: Fault code of the error
@@ -59,6 +59,6 @@ Fires when there is a fault code on the device.
 ### 2FA Login Required
 Fires when there two factor authentication is required to login.
 
-#### `dreame_vacuum_2fa_login_`
+#### `xiaomi_vacuum_2fa_login_`
 - `entity_id`: Vacuum entity
 - `url`: 2FA login URL

@@ -1,4 +1,4 @@
-"""Support for Dreame Vacuum numbers."""
+"""Support for Xiaomi Vacuum numbers."""
 
 from __future__ import annotations
 
@@ -18,32 +18,32 @@ from homeassistant.helpers import entity_platform
 
 from .const import DOMAIN, UNIT_MINUTES
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
-from .entity import DreameVacuumEntity, DreameVacuumEntityDescription
-from .dreame import DreameVacuumAction, DreameVacuumProperty
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
+from .entity import XiaomiVacuumEntity, XiaomiVacuumEntityDescription
+from .xiaomi import XiaomiVacuumAction, XiaomiVacuumProperty
 
 
 @dataclass
-class DreameVacuumNumberEntityDescription(DreameVacuumEntityDescription, NumberEntityDescription):
-    """Describes Dreame Vacuum Number entity."""
+class XiaomiVacuumNumberEntityDescription(XiaomiVacuumEntityDescription, NumberEntityDescription):
+    """Describes Xiaomi Vacuum Number entity."""
 
     mode: NumberMode = NumberMode.AUTO
-    post_action: DreameVacuumAction = None
+    post_action: XiaomiVacuumAction = None
 
 
-NUMBERS: tuple[DreameVacuumNumberEntityDescription, ...] = (
-    DreameVacuumNumberEntityDescription(
-        property_key=DreameVacuumProperty.VOLUME,
+NUMBERS: tuple[XiaomiVacuumNumberEntityDescription, ...] = (
+    XiaomiVacuumNumberEntityDescription(
+        property_key=XiaomiVacuumProperty.VOLUME,
         icon_fn=lambda value, device: "mdi:volume-off" if value == 0 else "mdi:volume-high",
         mode=NumberMode.SLIDER,
         native_min_value=0,
         native_max_value=100,
         native_step=1,
         entity_category=EntityCategory.CONFIG,
-        post_action=DreameVacuumAction.TEST_SOUND,
+        post_action=XiaomiVacuumAction.TEST_SOUND,
     ),
-    DreameVacuumNumberEntityDescription(
-        property_key=DreameVacuumProperty.MOP_CLEANING_REMAINDER,
+    XiaomiVacuumNumberEntityDescription(
+        property_key=XiaomiVacuumProperty.MOP_CLEANING_REMAINDER,
         icon="mdi:alarm-check",
         mode=NumberMode.BOX,
         native_unit_of_measurement=UNIT_MINUTES,
@@ -52,8 +52,8 @@ NUMBERS: tuple[DreameVacuumNumberEntityDescription, ...] = (
         native_step=15,
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumNumberEntityDescription(
-        property_key=DreameVacuumProperty.DND_START,
+    XiaomiVacuumNumberEntityDescription(
+        property_key=XiaomiVacuumProperty.DND_START,
         key="dnd_start_hour",
         icon="mdi:clock-start",
         mode=NumberMode.BOX,
@@ -65,8 +65,8 @@ NUMBERS: tuple[DreameVacuumNumberEntityDescription, ...] = (
         format_fn=lambda value, device: "{:02d}:".format(value) + device.status.dnd_start.split(":")[1],
         entity_registry_enabled_default=False,
     ),
-    DreameVacuumNumberEntityDescription(
-        property_key=DreameVacuumProperty.DND_START,
+    XiaomiVacuumNumberEntityDescription(
+        property_key=XiaomiVacuumProperty.DND_START,
         key="dnd_start_minute",
         icon="mdi:clock-start",
         mode=NumberMode.BOX,
@@ -78,8 +78,8 @@ NUMBERS: tuple[DreameVacuumNumberEntityDescription, ...] = (
         format_fn=lambda value, device: device.status.dnd_start.split(":")[0] + ":{:02d}".format(value),
         entity_registry_enabled_default=False,
     ),
-    DreameVacuumNumberEntityDescription(
-        property_key=DreameVacuumProperty.DND_END,
+    XiaomiVacuumNumberEntityDescription(
+        property_key=XiaomiVacuumProperty.DND_END,
         key="dnd_end_hour",
         icon="mdi:clock-end",
         mode=NumberMode.BOX,
@@ -91,8 +91,8 @@ NUMBERS: tuple[DreameVacuumNumberEntityDescription, ...] = (
         format_fn=lambda value, device: "{:02d}:".format(value) + device.status.dnd_end.split(":")[1],
         entity_registry_enabled_default=False,
     ),
-    DreameVacuumNumberEntityDescription(
-        property_key=DreameVacuumProperty.DND_END,
+    XiaomiVacuumNumberEntityDescription(
+        property_key=XiaomiVacuumProperty.DND_END,
         key="dnd_end_minute",
         icon="mdi:clock-end",
         mode=NumberMode.BOX,
@@ -112,24 +112,24 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Dreame Vacuum number based on a config entry."""
-    coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Xiaomi Vacuum number based on a config entry."""
+    coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        DreameVacuumNumberEntity(coordinator, description)
+        XiaomiVacuumNumberEntity(coordinator, description)
         for description in NUMBERS
         if description.exists_fn(description, coordinator.device)
     )
 
 
-class DreameVacuumNumberEntity(DreameVacuumEntity, NumberEntity):
-    """Defines a Dreame Vacuum number."""
+class XiaomiVacuumNumberEntity(XiaomiVacuumEntity, NumberEntity):
+    """Defines a Xiaomi Vacuum number."""
 
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
-        description: DreameVacuumNumberEntityDescription,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
+        description: XiaomiVacuumNumberEntityDescription,
     ) -> None:
-        """Initialize Dreame Vacuum ."""
+        """Initialize Xiaomi Vacuum ."""
         super().__init__(coordinator, description)
         self._attr_mode = description.mode
         self._attr_native_value = super().native_value
@@ -140,7 +140,7 @@ class DreameVacuumNumberEntity(DreameVacuumEntity, NumberEntity):
         super()._handle_coordinator_update()
 
     async def async_set_native_value(self, value: float) -> None:
-        """Set the Dreame Vacuum number value."""
+        """Set the Xiaomi Vacuum number value."""
         if not self.available:
             raise HomeAssistantError("Entity unavailable")
 
@@ -166,5 +166,5 @@ class DreameVacuumNumberEntity(DreameVacuumEntity, NumberEntity):
 
     @property
     def native_value(self) -> int | None:
-        """Return the current Dreame Vacuum number value."""
+        """Return the current Xiaomi Vacuum number value."""
         return self._attr_native_value

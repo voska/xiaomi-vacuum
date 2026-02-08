@@ -1,4 +1,4 @@
-"""Config flow for Dremae Vacuum."""
+"""Config flow for Xiaomi Vacuum."""
 
 from __future__ import annotations
 from typing import Any, Final
@@ -22,7 +22,7 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 
-from .dreame import DreameVacuumProtocol, MAP_COLOR_SCHEME_LIST, MAP_ICON_SET_LIST, VERSION
+from .xiaomi import XiaomiVacuumProtocol, MAP_COLOR_SCHEME_LIST, MAP_ICON_SET_LIST, VERSION
 
 from .const import (
     DOMAIN,
@@ -47,71 +47,8 @@ from .const import (
 ACCOUNT_TYPE_MI = "mi"
 ACCOUNT_TYPE_LOCAL = "local"
 
-DREAME_MODELS = [
-    "dreame.vacuum.r2205",
-    "dreame.vacuum.r2243",
-    "dreame.vacuum.r2240",
-    "dreame.vacuum.r2250",
-    "dreame.vacuum.p2009",
-    "dreame.vacuum.r2312",
-    "dreame.vacuum.p2259",
-    "dreame.vacuum.r2312a",
-    "dreame.vacuum.r2322",
-    "dreame.vacuum.p2187",
-    "dreame.vacuum.r2328",
-    "dreame.vacuum.p2028a",
-    # "dreame.vacuum.r2251a", Map private key missing
-    "dreame.vacuum.p2029",
-    "dreame.vacuum.r2257o",
-    "dreame.vacuum.r2215o",
-    "dreame.vacuum.r2216o",
-    "dreame.vacuum.r2228o",
-    "dreame.vacuum.r2228",
-    "dreame.vacuum.r2246",
-    "dreame.vacuum.r2233",
-    "dreame.vacuum.r2247",
-    "dreame.vacuum.r2211o",
-    "dreame.vacuum.r2316",
-    "dreame.vacuum.r2316p",
-    "dreame.vacuum.r2313",
-    "dreame.vacuum.r2355",
-    "dreame.vacuum.r2332",
-    "dreame.vacuum.p2027",
-    "dreame.vacuum.r2104",
-    "dreame.vacuum.r2251o",
-    "dreame.vacuum.r2232a",
-    "dreame.vacuum.r2317",
-    "dreame.vacuum.r2345a",
-    "dreame.vacuum.r2345h",
-    "dreame.vacuum.r2215",
-    "dreame.vacuum.r2235",
-    "dreame.vacuum.r2263",
-    "dreame.vacuum.r2253",
-    "dreame.vacuum.p2028",
-    "dreame.vacuum.p2157",
-    "dreame.vacuum.p2156o",
-]
-
-MIJIA_MODELS = [
-    "dreame.vacuum.p2041",
-    "dreame.vacuum.p2036",
-    "dreame.vacuum.p2140",
-    "dreame.vacuum.p2140a",
-    "dreame.vacuum.p2114a",
-    "dreame.vacuum.p2114o",
-    # "dreame.vacuum.r2210", Map private key missing
-    "dreame.vacuum.p2149o",
-    "dreame.vacuum.p2150a",
-    "dreame.vacuum.p2150b",
-    "dreame.vacuum.p2150o",
-    "dreame.vacuum.r2209",
-    "dreame.vacuum.p2008",
-    "dreame.vacuum.p2148o",
-    "dreame.vacuum.p2140o",
-    "dreame.vacuum.r2254",
-    "dreame.vacuum.p2140p",
-    "dreame.vacuum.p2140q",
-    "dreame.vacuum.p2041o",
+SUPPORTED_MODELS = [
+    "xiaomi.vacuum.d109gl",
 ]
 
 ACCOUNT_TYPE: Final = {
@@ -120,15 +57,15 @@ ACCOUNT_TYPE: Final = {
 }
 
 
-class DreameVacuumOptionsFlowHandler(OptionsFlow):
-    """Handle Dreame Vacuum options."""
+class XiaomiVacuumOptionsFlowHandler(OptionsFlow):
+    """Handle Xiaomi Vacuum options."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize Dreame Vacuum options flow."""
+        """Initialize Xiaomi Vacuum options flow."""
         self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
-        """Manage Dreame Vacuum options."""
+        """Manage Xiaomi Vacuum options."""
         errors = {}
         if user_input is not None:
             return self.async_create_entry(title="", data={**self._config_entry.options, **user_input})
@@ -183,8 +120,8 @@ class DreameVacuumOptionsFlowHandler(OptionsFlow):
         )
 
 
-class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
-    """Handle config flow for an Dreame Vacuum device."""
+class XiaomiVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
+    """Handle config flow for an Xiaomi Vacuum device."""
 
     VERSION = 1
 
@@ -203,7 +140,7 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
         self.device_id: int | None = None
         self.prefer_cloud: bool = True
         self.options: dict[str, dict[str, Any]] = {}
-        self.protocol: DreameVacuumProtocol | None = None
+        self.protocol: XiaomiVacuumProtocol | None = None
         self.models: dict[str, int] = None
         self.devices: dict[str, Any] = None
         self.unsupported_devices: dict[str, Any] = None
@@ -213,9 +150,9 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(
         config_entry: ConfigEntry,
-    ) -> DreameVacuumOptionsFlowHandler:
+    ) -> XiaomiVacuumOptionsFlowHandler:
         """Get the options flow for this handler."""
-        return DreameVacuumOptionsFlowHandler(config_entry)
+        return XiaomiVacuumOptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle a flow initialized by the user."""
@@ -256,14 +193,14 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="reauth_confirm")
 
     async def async_step_connect(self, user_input: dict[str, Any] | None = None) -> FlowResult:
-        """Connect to a Dreame Vacuum device."""
+        """Connect to a Xiaomi Vacuum device."""
         error = None
         if self.prefer_cloud or (self.token and len(self.token) == 32):
             try:
                 if self.protocol is not None:
                     self.protocol.disconnect()
 
-                self.protocol = DreameVacuumProtocol(
+                self.protocol = XiaomiVacuumProtocol(
                     self.host,
                     self.token,
                     self.username,
@@ -360,7 +297,7 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
     async def async_step_mi(
         self, user_input: dict[str, Any] | None = None, errors: dict[str, Any] | None = {}, error: str | None = None
     ) -> FlowResult:
-        """Configure a dreame vacuum device through the Miio Cloud."""
+        """Configure a xiaomi vacuum device through the Miio Cloud."""
 
         description_placeholders = {}
         if user_input is not None:
@@ -377,7 +314,7 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
                 if self.protocol is not None:
                     self.protocol.disconnect()
 
-                self.protocol = DreameVacuumProtocol(
+                self.protocol = XiaomiVacuumProtocol(
                     username=self.username,
                     password=self.password,
                     country=self.country,
@@ -471,7 +408,7 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_devices(self, user_input: dict[str, Any] | None = None) -> FlowResult:
-        """Handle Dreame Vacuum devices found."""
+        """Handle Xiaomi Vacuum devices found."""
 
         if user_input is None:
             if not self.devices:
@@ -508,7 +445,7 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_options(self, user_input: dict[str, Any] | None = None) -> FlowResult:
-        """Handle Dreame Vacuum options step."""
+        """Handle Xiaomi Vacuum options step."""
 
         if user_input is not None:
             self.name = user_input[CONF_NAME]
@@ -606,10 +543,8 @@ class DreameVacuumFlowHandler(ConfigFlow, domain=DOMAIN):
     def load_devices(self):
         if self.models is None:
             self.models = {}
-            for k in DREAME_MODELS:
+            for k in SUPPORTED_MODELS:
                 self.models[k] = 0
-            for k in MIJIA_MODELS:
-                self.models[k] = 1
 
     @property
     def login_schema(self):

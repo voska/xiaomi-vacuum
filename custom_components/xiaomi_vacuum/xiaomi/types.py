@@ -94,8 +94,8 @@ ATTR_OBSTACLES: Final = "obstacles"
 ATTR_POSSIBILTY: Final = "possibility"
 
 
-class DreameVacuumChargingStatus(IntEnum):
-    """Dreame Vacuum charging status"""
+class XiaomiVacuumChargingStatus(IntEnum):
+    """Xiaomi Vacuum charging status"""
 
     UNKNOWN = -1
     CHARGING = 1
@@ -104,8 +104,8 @@ class DreameVacuumChargingStatus(IntEnum):
     RETURN_TO_CHARGE = 5
 
 
-class DreameVacuumErrorCode(IntEnum):
-    """Dreame Vacuum error code"""
+class XiaomiVacuumErrorCode(IntEnum):
+    """Xiaomi Vacuum error code"""
 
     UNKNOWN = -1
     NO_ERROR = 0
@@ -196,8 +196,8 @@ class DreameVacuumErrorCode(IntEnum):
     WASHBOARD_LEVEL = 119
 
 
-class DreameVacuumState(IntEnum):
-    """Dreame Vacuum state"""
+class XiaomiVacuumState(IntEnum):
+    """Xiaomi Vacuum state"""
 
     UNKNOWN = -1
     SWEEPING = 1
@@ -216,8 +216,8 @@ class DreameVacuumState(IntEnum):
     UPGRADING = 14
 
 
-class DreameVacuumSuctionLevel(IntEnum):
-    """Dreame Vacuum suction level"""
+class XiaomiVacuumSuctionLevel(IntEnum):
+    """Xiaomi Vacuum suction level"""
 
     UNKNOWN = -1
     QUIET = 0
@@ -226,8 +226,8 @@ class DreameVacuumSuctionLevel(IntEnum):
     TURBO = 3
 
 
-class DreameVacuumCleaningMode(IntEnum):
-    """Dreame Vacuum cleaning mode"""
+class XiaomiVacuumCleaningMode(IntEnum):
+    """Xiaomi Vacuum cleaning mode"""
 
     UNKNOWN = -1
     SWEEPING = 0
@@ -235,8 +235,8 @@ class DreameVacuumCleaningMode(IntEnum):
     SWEEPING_AND_MOPPING = 2
 
 
-class DreameVacuumWaterTank(IntEnum):
-    """Dreame Vacuum water tank status"""
+class XiaomiVacuumWaterTank(IntEnum):
+    """Xiaomi Vacuum water tank status"""
 
     UNKNOWN = -1
     NOT_INSTALLED = 0
@@ -244,8 +244,8 @@ class DreameVacuumWaterTank(IntEnum):
     MOP_INSTALLED = 10
 
 
-class DreameVacuumWaterVolume(IntEnum):
-    """Dreame Vacuum water volume"""
+class XiaomiVacuumWaterVolume(IntEnum):
+    """Xiaomi Vacuum water volume"""
 
     UNKNOWN = -1
     LOW = 1
@@ -253,8 +253,8 @@ class DreameVacuumWaterVolume(IntEnum):
     HIGH = 3
 
 
-class DreameVacuumMopPadHumidity(IntEnum):
-    """Dreame Vacuum mop pad humidity"""
+class XiaomiVacuumMopPadHumidity(IntEnum):
+    """Xiaomi Vacuum mop pad humidity"""
 
     UNKNOWN = -1
     SLIGHTLY_DRY = 1
@@ -262,8 +262,8 @@ class DreameVacuumMopPadHumidity(IntEnum):
     WET = 3
 
 
-class DreameVacuumCarpetSensitivity(IntEnum):
-    """Dreame Vacuum carpet boost sensitivity"""
+class XiaomiVacuumCarpetSensitivity(IntEnum):
+    """Xiaomi Vacuum carpet boost sensitivity"""
 
     UNKNOWN = -1
     LOW = 1
@@ -271,8 +271,8 @@ class DreameVacuumCarpetSensitivity(IntEnum):
     HIGH = 3
 
 
-class DreameVacuumRelocationStatus(IntEnum):
-    """Dreame Vacuum relocation status"""
+class XiaomiVacuumRelocationStatus(IntEnum):
+    """Xiaomi Vacuum relocation status"""
 
     UNKNOWN = -1
     LOCATED = 0
@@ -281,8 +281,8 @@ class DreameVacuumRelocationStatus(IntEnum):
     SUCCESS = 11
 
 
-class DreameVacuumTaskStatus(IntEnum):
-    """Dreame Vacuum task status"""
+class XiaomiVacuumTaskStatus(IntEnum):
+    """Xiaomi Vacuum task status"""
 
     UNKNOWN = -1
     COMPLETED = 0
@@ -313,8 +313,8 @@ class DreameVacuumTaskStatus(IntEnum):
     RETURNING_REMOVE_MOP = 26
 
 
-class DreameVacuumStatus(IntEnum):
-    """Dreame Vacuum status"""
+class XiaomiVacuumStatus(IntEnum):
+    """Xiaomi Vacuum status"""
 
     UNKNOWN = -1
     IDLE = 0
@@ -344,16 +344,16 @@ class DreameVacuumStatus(IntEnum):
     SUMMON_CLEAN = 24
 
 
-class DreameVacuumDustCollection(IntEnum):
-    """Dreame Vacuum dust collection availability"""
+class XiaomiVacuumDustCollection(IntEnum):
+    """Xiaomi Vacuum dust collection availability"""
 
     UNKNOWN = -1
     NOT_AVAILABLE = 0
     AVAILABLE = 1
 
 
-class DreameVacuumAutoEmptyStatus(IntEnum):
-    """Dreame Vacuum dust collection status"""
+class XiaomiVacuumAutoEmptyStatus(IntEnum):
+    """Xiaomi Vacuum dust collection status"""
 
     UNKNOWN = -1
     IDLE = 0
@@ -361,8 +361,8 @@ class DreameVacuumAutoEmptyStatus(IntEnum):
     NOT_PERFORMED = 2
 
 
-class DreameVacuumSelfWashBaseStatus(IntEnum):
-    """Dreame Vacuum self-wash base status"""
+class XiaomiVacuumSelfWashBaseStatus(IntEnum):
+    """Xiaomi Vacuum self-wash base status"""
 
     UNKNOWN = -1
     IDLE = 0
@@ -374,8 +374,8 @@ class DreameVacuumSelfWashBaseStatus(IntEnum):
     ADDING_WATER = 6
 
 
-class DreameVacuumSelfCleanArea(IntEnum):
-    """Dreame Vacuum self clean area"""
+class XiaomiVacuumSelfCleanArea(IntEnum):
+    """Xiaomi Vacuum self clean area"""
 
     UNKNOWN = -1
     SINGLE_ZONE = 0
@@ -384,8 +384,8 @@ class DreameVacuumSelfCleanArea(IntEnum):
     FIFTEEN_SQUARE_METERS = 15
 
 
-class DreameVacuumMopWashLevel(IntEnum):
-    """Dreame Vacuum mop wash level"""
+class XiaomiVacuumMopWashLevel(IntEnum):
+    """Xiaomi Vacuum mop wash level"""
 
     UNKNOWN = -1
     WATER_SAVING = 0
@@ -393,8 +393,8 @@ class DreameVacuumMopWashLevel(IntEnum):
     DEEP = 2
 
 
-class DreameVacuumMoppingType(IntEnum):
-    """Dreame Vacuum mopping type"""
+class XiaomiVacuumMoppingType(IntEnum):
+    """Xiaomi Vacuum mopping type"""
 
     UNKNOWN = -1
     DAILY = 0
@@ -402,8 +402,8 @@ class DreameVacuumMoppingType(IntEnum):
     DEEP = 2
 
 
-class DreameVacuumProperty(IntEnum):
-    """Dreame Vacuum properties"""
+class XiaomiVacuumProperty(IntEnum):
+    """Xiaomi Vacuum properties"""
 
     STATE = 0
     ERROR = 1
@@ -530,8 +530,8 @@ class DreameVacuumProperty(IntEnum):
     STREAM_SPACE = 122
 
 
-class DreameVacuumAction(IntEnum):
-    """Dreame Vacuum actions"""
+class XiaomiVacuumAction(IntEnum):
+    """Xiaomi Vacuum actions"""
 
     START = 1
     PAUSE = 2
@@ -564,237 +564,280 @@ class DreameVacuumAction(IntEnum):
     STREAM_CODE = 29
 
 
-# Dreame Vacuum property mapping
-DreameVacuumPropertyMapping = {
-    DreameVacuumProperty.STATE: {"siid": 2, "piid": 1},
-    DreameVacuumProperty.ERROR: {"siid": 2, "piid": 2},
-    DreameVacuumProperty.BATTERY_LEVEL: {"siid": 3, "piid": 1},
-    DreameVacuumProperty.CHARGING_STATUS: {"siid": 3, "piid": 2},
-    DreameVacuumProperty.STATUS: {"siid": 4, "piid": 1},
-    DreameVacuumProperty.CLEANING_TIME: {"siid": 4, "piid": 2},
-    DreameVacuumProperty.CLEANED_AREA: {"siid": 4, "piid": 3},
-    DreameVacuumProperty.SUCTION_LEVEL: {"siid": 4, "piid": 4},
-    DreameVacuumProperty.WATER_VOLUME: {"siid": 4, "piid": 5},
-    DreameVacuumProperty.WATER_TANK: {"siid": 4, "piid": 6},
-    DreameVacuumProperty.TASK_STATUS: {"siid": 4, "piid": 7},
-    DreameVacuumProperty.CLEANING_START_TIME: {"siid": 4, "piid": 8},
-    DreameVacuumProperty.CLEAN_LOG_FILE_NAME: {"siid": 4, "piid": 9},
-    DreameVacuumProperty.CLEANING_PROPERTIES: {"siid": 4, "piid": 10},
-    DreameVacuumProperty.RESUME_CLEANING: {"siid": 4, "piid": 11},
-    DreameVacuumProperty.CARPET_BOOST: {"siid": 4, "piid": 12},
-    DreameVacuumProperty.CLEAN_LOG_STATUS: {"siid": 4, "piid": 13},
-    DreameVacuumProperty.SERIAL_NUMBER: {"siid": 4, "piid": 14},
-    DreameVacuumProperty.REMOTE_CONTROL: {"siid": 4, "piid": 15},
-    DreameVacuumProperty.MOP_CLEANING_REMAINDER: {"siid": 4, "piid": 16},
-    DreameVacuumProperty.CLEANING_PAUSED: {"siid": 4, "piid": 17},
-    DreameVacuumProperty.FAULTS: {"siid": 4, "piid": 18},
-    DreameVacuumProperty.NATION_MATCHED: {"siid": 4, "piid": 19},
-    DreameVacuumProperty.RELOCATION_STATUS: {"siid": 4, "piid": 20},
-    DreameVacuumProperty.OBSTACLE_AVOIDANCE: {"siid": 4, "piid": 21},
-    DreameVacuumProperty.AI_DETECTION: {"siid": 4, "piid": 22},
-    DreameVacuumProperty.CLEANING_MODE: {"siid": 4, "piid": 23},
-    DreameVacuumProperty.UPLOAD_MAP: {"siid": 4, "piid": 24},
-    DreameVacuumProperty.SELF_WASH_BASE_STATUS: {"siid": 4, "piid": 25},
-    DreameVacuumProperty.CUSTOMIZED_CLEANING: {"siid": 4, "piid": 26},
-    DreameVacuumProperty.CHILD_LOCK: {"siid": 4, "piid": 27},
-    DreameVacuumProperty.CARPET_SENSITIVITY: {"siid": 4, "piid": 28},
-    DreameVacuumProperty.TIGHT_MOPPING: {"siid": 4, "piid": 29},
-    DreameVacuumProperty.CLEANING_CANCEL: {"siid": 4, "piid": 30},
-    DreameVacuumProperty.Y_CLEAN: {"siid": 4, "piid": 31},
-    DreameVacuumProperty.WATER_ELECTROLYSIS: {"siid": 4, "piid": 32},
-    DreameVacuumProperty.CARPET_RECOGNITION: {"siid": 4, "piid": 33},
-    DreameVacuumProperty.SELF_CLEAN: {"siid": 4, "piid": 34},
-    DreameVacuumProperty.WARN_STATUS: {"siid": 4, "piid": 35},
-    DreameVacuumProperty.CARPET_AVOIDANCE: {"siid": 4, "piid": 36},
-    DreameVacuumProperty.AUTO_ADD_DETERGENT: {"siid": 4, "piid": 37},
-    DreameVacuumProperty.CAPABILITY: {"siid": 4, "piid": 38},
-    DreameVacuumProperty.SAVE_WATER_TIPS: {"siid": 4, "piid": 39},
-    DreameVacuumProperty.DRYING_TIME: {"siid": 4, "piid": 40},
-    DreameVacuumProperty.NO_WATER_WARNING: {"siid": 4, "piid": 41},
-    DreameVacuumProperty.AUTO_MOUNT_MOP: {"siid": 4, "piid": 45},
-    DreameVacuumProperty.MOP_WASH_LEVEL: {"siid": 4, "piid": 46},
-    DreameVacuumProperty.SCHEDULED_CLEAN: {"siid": 4, "piid": 47},
-    DreameVacuumProperty.QUICK_COMMAND: {"siid": 4, "piid": 48},
-    DreameVacuumProperty.INTELLIGENT_RECOGNITION: {"siid": 4, "piid": 49},
-    DreameVacuumProperty.AUTO_SWITCH_SETTINGS: {"siid": 4, "piid": 50},
-    DreameVacuumProperty.AUTO_WATER_REFILLING: {"siid": 4, "piid": 51},
-    DreameVacuumProperty.MOP_IN_STATION: {"siid": 4, "piid": 52},
-    DreameVacuumProperty.MOP_PAD_INSTALLED: {"siid": 4, "piid": 53},
-    # DreameVacuumProperty.COMBINED_DATA: {"siid": 4, "piid": 99},
-    DreameVacuumProperty.DND: {"siid": 5, "piid": 1},
-    DreameVacuumProperty.DND_START: {"siid": 5, "piid": 2},
-    DreameVacuumProperty.DND_END: {"siid": 5, "piid": 3},
-    DreameVacuumProperty.DND_TASK: {"siid": 5, "piid": 4},
-    DreameVacuumProperty.MAP_DATA: {"siid": 6, "piid": 1},
-    DreameVacuumProperty.FRAME_INFO: {"siid": 6, "piid": 2},
-    DreameVacuumProperty.OBJECT_NAME: {"siid": 6, "piid": 3},
-    DreameVacuumProperty.MAP_EXTEND_DATA: {"siid": 6, "piid": 4},
-    DreameVacuumProperty.ROBOT_TIME: {"siid": 6, "piid": 5},
-    DreameVacuumProperty.RESULT_CODE: {"siid": 6, "piid": 6},
-    DreameVacuumProperty.MULTI_FLOOR_MAP: {"siid": 6, "piid": 7},
-    DreameVacuumProperty.MAP_LIST: {"siid": 6, "piid": 8},
-    DreameVacuumProperty.RECOVERY_MAP_LIST: {"siid": 6, "piid": 9},
-    DreameVacuumProperty.MAP_RECOVERY: {"siid": 6, "piid": 10},
-    DreameVacuumProperty.MAP_RECOVERY_STATUS: {"siid": 6, "piid": 11},
-    DreameVacuumProperty.OLD_MAP_DATA: {"siid": 6, "piid": 13},
-    DreameVacuumProperty.BACKUP_MAP_STATUS: {"siid": 6, "piid": 14},
-    DreameVacuumProperty.WIFI_MAP: {"siid": 6, "piid": 15},
-    DreameVacuumProperty.VOLUME: {"siid": 7, "piid": 1},
-    DreameVacuumProperty.VOICE_PACKET_ID: {"siid": 7, "piid": 2},
-    DreameVacuumProperty.VOICE_CHANGE_STATUS: {"siid": 7, "piid": 3},
-    DreameVacuumProperty.VOICE_CHANGE: {"siid": 7, "piid": 4},
-    DreameVacuumProperty.TIMEZONE: {"siid": 8, "piid": 1},
-    DreameVacuumProperty.SCHEDULE: {"siid": 8, "piid": 2},
-    DreameVacuumProperty.SCHEDULE_ID: {"siid": 8, "piid": 3},
-    DreameVacuumProperty.SCHEDULE_CANCEL_REASON: {"siid": 8, "piid": 4},
-    DreameVacuumProperty.CRUISE_SCHEDULE: {"siid": 8, "piid": 5},
-    DreameVacuumProperty.MAIN_BRUSH_TIME_LEFT: {"siid": 9, "piid": 1},
-    DreameVacuumProperty.MAIN_BRUSH_LEFT: {"siid": 9, "piid": 2},
-    DreameVacuumProperty.SIDE_BRUSH_TIME_LEFT: {"siid": 10, "piid": 1},
-    DreameVacuumProperty.SIDE_BRUSH_LEFT: {"siid": 10, "piid": 2},
-    DreameVacuumProperty.FILTER_LEFT: {"siid": 11, "piid": 1},
-    DreameVacuumProperty.FILTER_TIME_LEFT: {"siid": 11, "piid": 2},
-    DreameVacuumProperty.FIRST_CLEANING_DATE: {"siid": 12, "piid": 1},
-    DreameVacuumProperty.TOTAL_CLEANING_TIME: {"siid": 12, "piid": 2},
-    DreameVacuumProperty.CLEANING_COUNT: {"siid": 12, "piid": 3},
-    DreameVacuumProperty.TOTAL_CLEANED_AREA: {"siid": 12, "piid": 4},
-    DreameVacuumProperty.MAP_SAVING: {"siid": 13, "piid": 1},
-    DreameVacuumProperty.AUTO_DUST_COLLECTING: {"siid": 15, "piid": 1},
-    DreameVacuumProperty.AUTO_EMPTY_FREQUENCY: {"siid": 15, "piid": 2},
-    DreameVacuumProperty.DUST_COLLECTION: {"siid": 15, "piid": 3},
-    DreameVacuumProperty.AUTO_EMPTY_STATUS: {"siid": 15, "piid": 5},
-    DreameVacuumProperty.SENSOR_DIRTY_LEFT: {"siid": 16, "piid": 1},
-    DreameVacuumProperty.SENSOR_DIRTY_TIME_LEFT: {"siid": 16, "piid": 2},
-    DreameVacuumProperty.SECONDARY_FILTER_LEFT: {"siid": 17, "piid": 1},
-    DreameVacuumProperty.SECONDARY_FILTER_TIME_LEFT: {"siid": 17, "piid": 2},
-    DreameVacuumProperty.MOP_PAD_LEFT: {"siid": 18, "piid": 1},
-    DreameVacuumProperty.MOP_PAD_TIME_LEFT: {"siid": 18, "piid": 2},
-    DreameVacuumProperty.SILVER_ION_TIME_LEFT: {"siid": 19, "piid": 1},
-    DreameVacuumProperty.SILVER_ION_LEFT: {"siid": 19, "piid": 2},
-    DreameVacuumProperty.DETERGENT_LEFT: {"siid": 20, "piid": 1},
-    DreameVacuumProperty.DETERGENT_TIME_LEFT: {"siid": 20, "piid": 2},
-    DreameVacuumProperty.STREAM_STATUS: {"siid": 10001, "piid": 1},
-    DreameVacuumProperty.STREAM_AUDIO: {"siid": 10001, "piid": 2},
-    DreameVacuumProperty.STREAM_RECORD: {"siid": 10001, "piid": 4},
-    DreameVacuumProperty.TAKE_PHOTO: {"siid": 10001, "piid": 5},
-    DreameVacuumProperty.STREAM_KEEP_ALIVE: {"siid": 10001, "piid": 6},
-    DreameVacuumProperty.STREAM_FAULT: {"siid": 10001, "piid": 7},
-    DreameVacuumProperty.CAMERA_BRIGHTNESS: {"siid": 10001, "piid": 9},
-    DreameVacuumProperty.CAMERA_LIGHT: {"siid": 10001, "piid": 10},
-    DreameVacuumProperty.STREAM_CRUISE_POINT: {"siid": 10001, "piid": 101},
-    DreameVacuumProperty.STREAM_PROPERTY: {"siid": 10001, "piid": 99},
-    DreameVacuumProperty.STREAM_TASK: {"siid": 10001, "piid": 103},
-    DreameVacuumProperty.STREAM_UPLOAD: {"siid": 10001, "piid": 1003},
-    DreameVacuumProperty.STREAM_CODE: {"siid": 10001, "piid": 1100},
-    DreameVacuumProperty.STREAM_SET_CODE: {"siid": 10001, "piid": 1101},
-    DreameVacuumProperty.STREAM_VERIFY_CODE: {"siid": 10001, "piid": 1102},
-    DreameVacuumProperty.STREAM_RESET_CODE: {"siid": 10001, "piid": 1103},
-    DreameVacuumProperty.STREAM_SPACE: {"siid": 10001, "piid": 2003},
+# Xiaomi Vacuum property mapping
+XiaomiVacuumPropertyMapping = {
+    XiaomiVacuumProperty.STATE: {"siid": 2, "piid": 1},
+    XiaomiVacuumProperty.ERROR: {"siid": 2, "piid": 2},
+    XiaomiVacuumProperty.BATTERY_LEVEL: {"siid": 3, "piid": 1},
+    XiaomiVacuumProperty.CHARGING_STATUS: {"siid": 3, "piid": 2},
+    XiaomiVacuumProperty.STATUS: {"siid": 4, "piid": 1},
+    XiaomiVacuumProperty.CLEANING_TIME: {"siid": 4, "piid": 2},
+    XiaomiVacuumProperty.CLEANED_AREA: {"siid": 4, "piid": 3},
+    XiaomiVacuumProperty.SUCTION_LEVEL: {"siid": 4, "piid": 4},
+    XiaomiVacuumProperty.WATER_VOLUME: {"siid": 4, "piid": 5},
+    XiaomiVacuumProperty.WATER_TANK: {"siid": 4, "piid": 6},
+    XiaomiVacuumProperty.TASK_STATUS: {"siid": 4, "piid": 7},
+    XiaomiVacuumProperty.CLEANING_START_TIME: {"siid": 4, "piid": 8},
+    XiaomiVacuumProperty.CLEAN_LOG_FILE_NAME: {"siid": 4, "piid": 9},
+    XiaomiVacuumProperty.CLEANING_PROPERTIES: {"siid": 4, "piid": 10},
+    XiaomiVacuumProperty.RESUME_CLEANING: {"siid": 4, "piid": 11},
+    XiaomiVacuumProperty.CARPET_BOOST: {"siid": 4, "piid": 12},
+    XiaomiVacuumProperty.CLEAN_LOG_STATUS: {"siid": 4, "piid": 13},
+    XiaomiVacuumProperty.SERIAL_NUMBER: {"siid": 4, "piid": 14},
+    XiaomiVacuumProperty.REMOTE_CONTROL: {"siid": 4, "piid": 15},
+    XiaomiVacuumProperty.MOP_CLEANING_REMAINDER: {"siid": 4, "piid": 16},
+    XiaomiVacuumProperty.CLEANING_PAUSED: {"siid": 4, "piid": 17},
+    XiaomiVacuumProperty.FAULTS: {"siid": 4, "piid": 18},
+    XiaomiVacuumProperty.NATION_MATCHED: {"siid": 4, "piid": 19},
+    XiaomiVacuumProperty.RELOCATION_STATUS: {"siid": 4, "piid": 20},
+    XiaomiVacuumProperty.OBSTACLE_AVOIDANCE: {"siid": 4, "piid": 21},
+    XiaomiVacuumProperty.AI_DETECTION: {"siid": 4, "piid": 22},
+    XiaomiVacuumProperty.CLEANING_MODE: {"siid": 4, "piid": 23},
+    XiaomiVacuumProperty.UPLOAD_MAP: {"siid": 4, "piid": 24},
+    XiaomiVacuumProperty.SELF_WASH_BASE_STATUS: {"siid": 4, "piid": 25},
+    XiaomiVacuumProperty.CUSTOMIZED_CLEANING: {"siid": 4, "piid": 26},
+    XiaomiVacuumProperty.CHILD_LOCK: {"siid": 4, "piid": 27},
+    XiaomiVacuumProperty.CARPET_SENSITIVITY: {"siid": 4, "piid": 28},
+    XiaomiVacuumProperty.TIGHT_MOPPING: {"siid": 4, "piid": 29},
+    XiaomiVacuumProperty.CLEANING_CANCEL: {"siid": 4, "piid": 30},
+    XiaomiVacuumProperty.Y_CLEAN: {"siid": 4, "piid": 31},
+    XiaomiVacuumProperty.WATER_ELECTROLYSIS: {"siid": 4, "piid": 32},
+    XiaomiVacuumProperty.CARPET_RECOGNITION: {"siid": 4, "piid": 33},
+    XiaomiVacuumProperty.SELF_CLEAN: {"siid": 4, "piid": 34},
+    XiaomiVacuumProperty.WARN_STATUS: {"siid": 4, "piid": 35},
+    XiaomiVacuumProperty.CARPET_AVOIDANCE: {"siid": 4, "piid": 36},
+    XiaomiVacuumProperty.AUTO_ADD_DETERGENT: {"siid": 4, "piid": 37},
+    XiaomiVacuumProperty.CAPABILITY: {"siid": 4, "piid": 38},
+    XiaomiVacuumProperty.SAVE_WATER_TIPS: {"siid": 4, "piid": 39},
+    XiaomiVacuumProperty.DRYING_TIME: {"siid": 4, "piid": 40},
+    XiaomiVacuumProperty.NO_WATER_WARNING: {"siid": 4, "piid": 41},
+    XiaomiVacuumProperty.AUTO_MOUNT_MOP: {"siid": 4, "piid": 45},
+    XiaomiVacuumProperty.MOP_WASH_LEVEL: {"siid": 4, "piid": 46},
+    XiaomiVacuumProperty.SCHEDULED_CLEAN: {"siid": 4, "piid": 47},
+    XiaomiVacuumProperty.QUICK_COMMAND: {"siid": 4, "piid": 48},
+    XiaomiVacuumProperty.INTELLIGENT_RECOGNITION: {"siid": 4, "piid": 49},
+    XiaomiVacuumProperty.AUTO_SWITCH_SETTINGS: {"siid": 4, "piid": 50},
+    XiaomiVacuumProperty.AUTO_WATER_REFILLING: {"siid": 4, "piid": 51},
+    XiaomiVacuumProperty.MOP_IN_STATION: {"siid": 4, "piid": 52},
+    XiaomiVacuumProperty.MOP_PAD_INSTALLED: {"siid": 4, "piid": 53},
+    # XiaomiVacuumProperty.COMBINED_DATA: {"siid": 4, "piid": 99},
+    XiaomiVacuumProperty.DND: {"siid": 5, "piid": 1},
+    XiaomiVacuumProperty.DND_START: {"siid": 5, "piid": 2},
+    XiaomiVacuumProperty.DND_END: {"siid": 5, "piid": 3},
+    XiaomiVacuumProperty.DND_TASK: {"siid": 5, "piid": 4},
+    XiaomiVacuumProperty.MAP_DATA: {"siid": 6, "piid": 1},
+    XiaomiVacuumProperty.FRAME_INFO: {"siid": 6, "piid": 2},
+    XiaomiVacuumProperty.OBJECT_NAME: {"siid": 6, "piid": 3},
+    XiaomiVacuumProperty.MAP_EXTEND_DATA: {"siid": 6, "piid": 4},
+    XiaomiVacuumProperty.ROBOT_TIME: {"siid": 6, "piid": 5},
+    XiaomiVacuumProperty.RESULT_CODE: {"siid": 6, "piid": 6},
+    XiaomiVacuumProperty.MULTI_FLOOR_MAP: {"siid": 6, "piid": 7},
+    XiaomiVacuumProperty.MAP_LIST: {"siid": 6, "piid": 8},
+    XiaomiVacuumProperty.RECOVERY_MAP_LIST: {"siid": 6, "piid": 9},
+    XiaomiVacuumProperty.MAP_RECOVERY: {"siid": 6, "piid": 10},
+    XiaomiVacuumProperty.MAP_RECOVERY_STATUS: {"siid": 6, "piid": 11},
+    XiaomiVacuumProperty.OLD_MAP_DATA: {"siid": 6, "piid": 13},
+    XiaomiVacuumProperty.BACKUP_MAP_STATUS: {"siid": 6, "piid": 14},
+    XiaomiVacuumProperty.WIFI_MAP: {"siid": 6, "piid": 15},
+    XiaomiVacuumProperty.VOLUME: {"siid": 7, "piid": 1},
+    XiaomiVacuumProperty.VOICE_PACKET_ID: {"siid": 7, "piid": 2},
+    XiaomiVacuumProperty.VOICE_CHANGE_STATUS: {"siid": 7, "piid": 3},
+    XiaomiVacuumProperty.VOICE_CHANGE: {"siid": 7, "piid": 4},
+    XiaomiVacuumProperty.TIMEZONE: {"siid": 8, "piid": 1},
+    XiaomiVacuumProperty.SCHEDULE: {"siid": 8, "piid": 2},
+    XiaomiVacuumProperty.SCHEDULE_ID: {"siid": 8, "piid": 3},
+    XiaomiVacuumProperty.SCHEDULE_CANCEL_REASON: {"siid": 8, "piid": 4},
+    XiaomiVacuumProperty.CRUISE_SCHEDULE: {"siid": 8, "piid": 5},
+    XiaomiVacuumProperty.MAIN_BRUSH_TIME_LEFT: {"siid": 9, "piid": 1},
+    XiaomiVacuumProperty.MAIN_BRUSH_LEFT: {"siid": 9, "piid": 2},
+    XiaomiVacuumProperty.SIDE_BRUSH_TIME_LEFT: {"siid": 10, "piid": 1},
+    XiaomiVacuumProperty.SIDE_BRUSH_LEFT: {"siid": 10, "piid": 2},
+    XiaomiVacuumProperty.FILTER_LEFT: {"siid": 11, "piid": 1},
+    XiaomiVacuumProperty.FILTER_TIME_LEFT: {"siid": 11, "piid": 2},
+    XiaomiVacuumProperty.FIRST_CLEANING_DATE: {"siid": 12, "piid": 1},
+    XiaomiVacuumProperty.TOTAL_CLEANING_TIME: {"siid": 12, "piid": 2},
+    XiaomiVacuumProperty.CLEANING_COUNT: {"siid": 12, "piid": 3},
+    XiaomiVacuumProperty.TOTAL_CLEANED_AREA: {"siid": 12, "piid": 4},
+    XiaomiVacuumProperty.MAP_SAVING: {"siid": 13, "piid": 1},
+    XiaomiVacuumProperty.AUTO_DUST_COLLECTING: {"siid": 15, "piid": 1},
+    XiaomiVacuumProperty.AUTO_EMPTY_FREQUENCY: {"siid": 15, "piid": 2},
+    XiaomiVacuumProperty.DUST_COLLECTION: {"siid": 15, "piid": 3},
+    XiaomiVacuumProperty.AUTO_EMPTY_STATUS: {"siid": 15, "piid": 5},
+    XiaomiVacuumProperty.SENSOR_DIRTY_LEFT: {"siid": 16, "piid": 1},
+    XiaomiVacuumProperty.SENSOR_DIRTY_TIME_LEFT: {"siid": 16, "piid": 2},
+    XiaomiVacuumProperty.SECONDARY_FILTER_LEFT: {"siid": 17, "piid": 1},
+    XiaomiVacuumProperty.SECONDARY_FILTER_TIME_LEFT: {"siid": 17, "piid": 2},
+    XiaomiVacuumProperty.MOP_PAD_LEFT: {"siid": 18, "piid": 1},
+    XiaomiVacuumProperty.MOP_PAD_TIME_LEFT: {"siid": 18, "piid": 2},
+    XiaomiVacuumProperty.SILVER_ION_TIME_LEFT: {"siid": 19, "piid": 1},
+    XiaomiVacuumProperty.SILVER_ION_LEFT: {"siid": 19, "piid": 2},
+    XiaomiVacuumProperty.DETERGENT_LEFT: {"siid": 20, "piid": 1},
+    XiaomiVacuumProperty.DETERGENT_TIME_LEFT: {"siid": 20, "piid": 2},
+    XiaomiVacuumProperty.STREAM_STATUS: {"siid": 10001, "piid": 1},
+    XiaomiVacuumProperty.STREAM_AUDIO: {"siid": 10001, "piid": 2},
+    XiaomiVacuumProperty.STREAM_RECORD: {"siid": 10001, "piid": 4},
+    XiaomiVacuumProperty.TAKE_PHOTO: {"siid": 10001, "piid": 5},
+    XiaomiVacuumProperty.STREAM_KEEP_ALIVE: {"siid": 10001, "piid": 6},
+    XiaomiVacuumProperty.STREAM_FAULT: {"siid": 10001, "piid": 7},
+    XiaomiVacuumProperty.CAMERA_BRIGHTNESS: {"siid": 10001, "piid": 9},
+    XiaomiVacuumProperty.CAMERA_LIGHT: {"siid": 10001, "piid": 10},
+    XiaomiVacuumProperty.STREAM_CRUISE_POINT: {"siid": 10001, "piid": 101},
+    XiaomiVacuumProperty.STREAM_PROPERTY: {"siid": 10001, "piid": 99},
+    XiaomiVacuumProperty.STREAM_TASK: {"siid": 10001, "piid": 103},
+    XiaomiVacuumProperty.STREAM_UPLOAD: {"siid": 10001, "piid": 1003},
+    XiaomiVacuumProperty.STREAM_CODE: {"siid": 10001, "piid": 1100},
+    XiaomiVacuumProperty.STREAM_SET_CODE: {"siid": 10001, "piid": 1101},
+    XiaomiVacuumProperty.STREAM_VERIFY_CODE: {"siid": 10001, "piid": 1102},
+    XiaomiVacuumProperty.STREAM_RESET_CODE: {"siid": 10001, "piid": 1103},
+    XiaomiVacuumProperty.STREAM_SPACE: {"siid": 10001, "piid": 2003},
 }
 
-# Dreame Vacuum action mapping
-DreameVacuumActionMapping = {
-    DreameVacuumAction.START: {"siid": 2, "aiid": 1},
-    DreameVacuumAction.PAUSE: {"siid": 2, "aiid": 2},
-    DreameVacuumAction.CHARGE: {"siid": 3, "aiid": 1},
-    DreameVacuumAction.START_CUSTOM: {"siid": 4, "aiid": 1},
-    DreameVacuumAction.STOP: {"siid": 4, "aiid": 2},
-    DreameVacuumAction.CLEAR_WARNING: {"siid": 4, "aiid": 3},
-    DreameVacuumAction.START_WASHING: {"siid": 4, "aiid": 4},
-    DreameVacuumAction.GET_PHOTO_INFO: {"siid": 4, "aiid": 6},
-    DreameVacuumAction.REQUEST_MAP: {"siid": 6, "aiid": 1},
-    DreameVacuumAction.UPDATE_MAP_DATA: {"siid": 6, "aiid": 2},
-    DreameVacuumAction.BACKUP_MAP: {"siid": 6, "aiid": 3},
-    DreameVacuumAction.WIFI_MAP: {"siid": 6, "aiid": 4},
-    DreameVacuumAction.LOCATE: {"siid": 7, "aiid": 1},
-    DreameVacuumAction.TEST_SOUND: {"siid": 7, "aiid": 2},
-    DreameVacuumAction.DELETE_SCHEDULE: {"siid": 8, "aiid": 1},
-    DreameVacuumAction.DELETE_CRUISE_SCHEDULE: {"siid": 8, "aiid": 2},
-    DreameVacuumAction.RESET_MAIN_BRUSH: {"siid": 9, "aiid": 1},
-    DreameVacuumAction.RESET_SIDE_BRUSH: {"siid": 10, "aiid": 1},
-    DreameVacuumAction.RESET_FILTER: {"siid": 11, "aiid": 1},
-    DreameVacuumAction.RESET_SENSOR: {"siid": 16, "aiid": 1},
-    DreameVacuumAction.START_AUTO_EMPTY: {"siid": 15, "aiid": 1},
-    DreameVacuumAction.RESET_SECONDARY_FILTER: {"siid": 17, "aiid": 1},
-    DreameVacuumAction.RESET_MOP_PAD: {"siid": 18, "aiid": 1},
-    DreameVacuumAction.RESET_SILVER_ION: {"siid": 19, "aiid": 1},
-    DreameVacuumAction.RESET_DETERGENT: {"siid": 20, "aiid": 1},
-    DreameVacuumAction.STREAM_CAMERA: {"siid": 10001, "aiid": 1},
-    DreameVacuumAction.STREAM_AUDIO: {"siid": 10001, "aiid": 2},
-    DreameVacuumAction.STREAM_PROPERTY: {"siid": 10001, "aiid": 3},
-    DreameVacuumAction.STREAM_CODE: {"siid": 10001, "aiid": 4},
+# Xiaomi Vacuum action mapping
+XiaomiVacuumActionMapping = {
+    XiaomiVacuumAction.START: {"siid": 2, "aiid": 1},
+    XiaomiVacuumAction.PAUSE: {"siid": 2, "aiid": 2},
+    XiaomiVacuumAction.CHARGE: {"siid": 3, "aiid": 1},
+    XiaomiVacuumAction.START_CUSTOM: {"siid": 4, "aiid": 1},
+    XiaomiVacuumAction.STOP: {"siid": 4, "aiid": 2},
+    XiaomiVacuumAction.CLEAR_WARNING: {"siid": 4, "aiid": 3},
+    XiaomiVacuumAction.START_WASHING: {"siid": 4, "aiid": 4},
+    XiaomiVacuumAction.GET_PHOTO_INFO: {"siid": 4, "aiid": 6},
+    XiaomiVacuumAction.REQUEST_MAP: {"siid": 6, "aiid": 1},
+    XiaomiVacuumAction.UPDATE_MAP_DATA: {"siid": 6, "aiid": 2},
+    XiaomiVacuumAction.BACKUP_MAP: {"siid": 6, "aiid": 3},
+    XiaomiVacuumAction.WIFI_MAP: {"siid": 6, "aiid": 4},
+    XiaomiVacuumAction.LOCATE: {"siid": 7, "aiid": 1},
+    XiaomiVacuumAction.TEST_SOUND: {"siid": 7, "aiid": 2},
+    XiaomiVacuumAction.DELETE_SCHEDULE: {"siid": 8, "aiid": 1},
+    XiaomiVacuumAction.DELETE_CRUISE_SCHEDULE: {"siid": 8, "aiid": 2},
+    XiaomiVacuumAction.RESET_MAIN_BRUSH: {"siid": 9, "aiid": 1},
+    XiaomiVacuumAction.RESET_SIDE_BRUSH: {"siid": 10, "aiid": 1},
+    XiaomiVacuumAction.RESET_FILTER: {"siid": 11, "aiid": 1},
+    XiaomiVacuumAction.RESET_SENSOR: {"siid": 16, "aiid": 1},
+    XiaomiVacuumAction.START_AUTO_EMPTY: {"siid": 15, "aiid": 1},
+    XiaomiVacuumAction.RESET_SECONDARY_FILTER: {"siid": 17, "aiid": 1},
+    XiaomiVacuumAction.RESET_MOP_PAD: {"siid": 18, "aiid": 1},
+    XiaomiVacuumAction.RESET_SILVER_ION: {"siid": 19, "aiid": 1},
+    XiaomiVacuumAction.RESET_DETERGENT: {"siid": 20, "aiid": 1},
+    XiaomiVacuumAction.STREAM_CAMERA: {"siid": 10001, "aiid": 1},
+    XiaomiVacuumAction.STREAM_AUDIO: {"siid": 10001, "aiid": 2},
+    XiaomiVacuumAction.STREAM_PROPERTY: {"siid": 10001, "aiid": 3},
+    XiaomiVacuumAction.STREAM_CODE: {"siid": 10001, "aiid": 4},
+}
+
+XiaomiVacuumD109glPropertyMapping = {
+    XiaomiVacuumProperty.STATUS: {"siid": 2, "piid": 2},
+    XiaomiVacuumProperty.ERROR: {"siid": 2, "piid": 3},
+    XiaomiVacuumProperty.CLEANING_MODE: {"siid": 2, "piid": 4},
+    XiaomiVacuumProperty.CLEANED_AREA: {"siid": 2, "piid": 6},
+    XiaomiVacuumProperty.CLEANING_TIME: {"siid": 2, "piid": 7},
+    XiaomiVacuumProperty.SUCTION_LEVEL: {"siid": 2, "piid": 9},
+    XiaomiVacuumProperty.WATER_VOLUME: {"siid": 2, "piid": 10},
+    XiaomiVacuumProperty.BATTERY_LEVEL: {"siid": 3, "piid": 1},
+    XiaomiVacuumProperty.CHARGING_STATUS: {"siid": 3, "piid": 2},
+    XiaomiVacuumProperty.VOLUME: {"siid": 4, "piid": 2},
+    XiaomiVacuumProperty.CHILD_LOCK: {"siid": 5, "piid": 1},
+    XiaomiVacuumProperty.MAIN_BRUSH_LEFT: {"siid": 9, "piid": 1},
+    XiaomiVacuumProperty.MAIN_BRUSH_TIME_LEFT: {"siid": 9, "piid": 2},
+    XiaomiVacuumProperty.MAP_DATA: {"siid": 10, "piid": 1},
+    XiaomiVacuumProperty.DND: {"siid": 11, "piid": 1},
+    XiaomiVacuumProperty.SIDE_BRUSH_LEFT: {"siid": 12, "piid": 1},
+    XiaomiVacuumProperty.SIDE_BRUSH_TIME_LEFT: {"siid": 12, "piid": 2},
+    XiaomiVacuumProperty.FILTER_LEFT: {"siid": 13, "piid": 1},
+    XiaomiVacuumProperty.FILTER_TIME_LEFT: {"siid": 13, "piid": 2},
+    XiaomiVacuumProperty.SENSOR_DIRTY_LEFT: {"siid": 14, "piid": 1},
+    XiaomiVacuumProperty.SENSOR_DIRTY_TIME_LEFT: {"siid": 14, "piid": 2},
+    XiaomiVacuumProperty.MOP_PAD_LEFT: {"siid": 18, "piid": 1},
+    XiaomiVacuumProperty.MOP_PAD_TIME_LEFT: {"siid": 18, "piid": 2},
+    XiaomiVacuumProperty.SECONDARY_FILTER_LEFT: {"siid": 19, "piid": 1},
+    XiaomiVacuumProperty.SECONDARY_FILTER_TIME_LEFT: {"siid": 19, "piid": 2},
+}
+
+XiaomiVacuumD109glActionMapping = {
+    XiaomiVacuumAction.START: {"siid": 2, "aiid": 1},
+    XiaomiVacuumAction.STOP: {"siid": 2, "aiid": 2},
+    XiaomiVacuumAction.CHARGE: {"siid": 2, "aiid": 3},
+    XiaomiVacuumAction.PAUSE: {"siid": 2, "aiid": 7},
+    XiaomiVacuumAction.START_CUSTOM: {"siid": 2, "aiid": 9},
+    XiaomiVacuumAction.LOCATE: {"siid": 6, "aiid": 1},
+    XiaomiVacuumAction.START_WASHING: {"siid": 2, "aiid": 19},
+    XiaomiVacuumAction.START_AUTO_EMPTY: {"siid": 2, "aiid": 18},
+}
+
+XIAOMI_MODEL_MAPPINGS = {
+    "xiaomi.vacuum.d109gl": (XiaomiVacuumD109glPropertyMapping, XiaomiVacuumD109glActionMapping),
 }
 
 PROPERTY_AVAILABILITY: Final = {
-    DreameVacuumProperty.CUSTOMIZED_CLEANING: lambda device: not device.status.started
+    XiaomiVacuumProperty.CUSTOMIZED_CLEANING: lambda device: not device.status.started
     and (device.status.has_saved_map or device.status.current_map is None),
-    DreameVacuumProperty.TIGHT_MOPPING: lambda device: device.status.water_tank_or_mop_installed,
-    DreameVacuumProperty.MULTI_FLOOR_MAP: lambda device: not device.status.has_temporary_map,
-    DreameVacuumProperty.DND_START: lambda device: device.status.dnd_enabled,
-    DreameVacuumProperty.DND_END: lambda device: device.status.dnd_enabled,
-    DreameVacuumProperty.SUCTION_LEVEL: lambda device: not device.status.mopping
+    XiaomiVacuumProperty.TIGHT_MOPPING: lambda device: device.status.water_tank_or_mop_installed,
+    XiaomiVacuumProperty.MULTI_FLOOR_MAP: lambda device: not device.status.has_temporary_map,
+    XiaomiVacuumProperty.DND_START: lambda device: device.status.dnd_enabled,
+    XiaomiVacuumProperty.DND_END: lambda device: device.status.dnd_enabled,
+    XiaomiVacuumProperty.SUCTION_LEVEL: lambda device: not device.status.mopping
     and not (device.status.customized_cleaning and not (device.status.zone_cleaning or device.status.spot_cleaning))
     and not device.status.fast_mapping,
-    DreameVacuumProperty.WATER_VOLUME: lambda device: device.status.water_tank_or_mop_installed
+    XiaomiVacuumProperty.WATER_VOLUME: lambda device: device.status.water_tank_or_mop_installed
     and not device.status.sweeping
     and not (device.status.customized_cleaning and not (device.status.zone_cleaning or device.status.spot_cleaning))
     and not device.status.fast_mapping,
-    DreameVacuumProperty.CLEANING_MODE: lambda device: not device.status.fast_mapping
+    XiaomiVacuumProperty.CLEANING_MODE: lambda device: not device.status.fast_mapping
     and not device.status.cleaning_paused
     and not device.status.scheduled_clean,
-    DreameVacuumProperty.CARPET_SENSITIVITY: lambda device: bool(
-        device.get_property(DreameVacuumProperty.CARPET_BOOST)
+    XiaomiVacuumProperty.CARPET_SENSITIVITY: lambda device: bool(
+        device.get_property(XiaomiVacuumProperty.CARPET_BOOST)
     ),
-    DreameVacuumProperty.CARPET_BOOST: lambda device: bool(
-        device.get_property(DreameVacuumProperty.CARPET_RECOGNITION) != 1
+    XiaomiVacuumProperty.CARPET_BOOST: lambda device: bool(
+        device.get_property(XiaomiVacuumProperty.CARPET_RECOGNITION) != 1
     ),
-    DreameVacuumProperty.CARPET_AVOIDANCE: lambda device: bool(
-        device.get_property(DreameVacuumProperty.CARPET_RECOGNITION) != 1
+    XiaomiVacuumProperty.CARPET_AVOIDANCE: lambda device: bool(
+        device.get_property(XiaomiVacuumProperty.CARPET_RECOGNITION) != 1
     ),
-    DreameVacuumProperty.AUTO_EMPTY_FREQUENCY: lambda device: bool(
-        device.get_property(DreameVacuumProperty.AUTO_DUST_COLLECTING)
+    XiaomiVacuumProperty.AUTO_EMPTY_FREQUENCY: lambda device: bool(
+        device.get_property(XiaomiVacuumProperty.AUTO_DUST_COLLECTING)
     ),
-    DreameVacuumProperty.CLEANING_TIME: lambda device: not device.status.fast_mapping,
-    DreameVacuumProperty.CLEANED_AREA: lambda device: not device.status.fast_mapping,
-    DreameVacuumProperty.RELOCATION_STATUS: lambda device: not device.status.fast_mapping,
-    DreameVacuumProperty.MOP_WASH_LEVEL: lambda device: device.status.water_tank_or_mop_installed
+    XiaomiVacuumProperty.CLEANING_TIME: lambda device: not device.status.fast_mapping,
+    XiaomiVacuumProperty.CLEANED_AREA: lambda device: not device.status.fast_mapping,
+    XiaomiVacuumProperty.RELOCATION_STATUS: lambda device: not device.status.fast_mapping,
+    XiaomiVacuumProperty.MOP_WASH_LEVEL: lambda device: device.status.water_tank_or_mop_installed
     and not device.status.sweeping,
-    DreameVacuumProperty.AUTO_ADD_DETERGENT: lambda device: bool(
-        device.get_property(DreameVacuumProperty.AUTO_ADD_DETERGENT) != 2
+    XiaomiVacuumProperty.AUTO_ADD_DETERGENT: lambda device: bool(
+        device.get_property(XiaomiVacuumProperty.AUTO_ADD_DETERGENT) != 2
     ),
 }
 
 ACTION_AVAILABILITY: Final = {
-    DreameVacuumAction.RESET_MAIN_BRUSH: lambda device: bool(device.status.main_brush_life < 100),
-    DreameVacuumAction.RESET_SIDE_BRUSH: lambda device: bool(device.status.side_brush_life < 100),
-    DreameVacuumAction.RESET_FILTER: lambda device: bool(device.status.filter_life < 100),
-    DreameVacuumAction.RESET_SENSOR: lambda device: bool(device.status.sensor_dirty_life < 100),
-    DreameVacuumAction.RESET_SECONDARY_FILTER: lambda device: bool(device.status.secondary_filter_life < 100),
-    DreameVacuumAction.RESET_MOP_PAD: lambda device: bool(device.status.mop_life < 100),
-    DreameVacuumAction.RESET_SILVER_ION: lambda device: bool(device.status.silver_ion_life < 100),
-    DreameVacuumAction.RESET_DETERGENT: lambda device: bool(device.status.detergent_life < 100),
-    DreameVacuumAction.START_AUTO_EMPTY: lambda device: device.status.dust_collection_available,
-    DreameVacuumAction.CLEAR_WARNING: lambda device: device.status.has_warning,
-    DreameVacuumAction.START: lambda device: not device.status.started
+    XiaomiVacuumAction.RESET_MAIN_BRUSH: lambda device: bool(device.status.main_brush_life < 100),
+    XiaomiVacuumAction.RESET_SIDE_BRUSH: lambda device: bool(device.status.side_brush_life < 100),
+    XiaomiVacuumAction.RESET_FILTER: lambda device: bool(device.status.filter_life < 100),
+    XiaomiVacuumAction.RESET_SENSOR: lambda device: bool(device.status.sensor_dirty_life < 100),
+    XiaomiVacuumAction.RESET_SECONDARY_FILTER: lambda device: bool(device.status.secondary_filter_life < 100),
+    XiaomiVacuumAction.RESET_MOP_PAD: lambda device: bool(device.status.mop_life < 100),
+    XiaomiVacuumAction.RESET_SILVER_ION: lambda device: bool(device.status.silver_ion_life < 100),
+    XiaomiVacuumAction.RESET_DETERGENT: lambda device: bool(device.status.detergent_life < 100),
+    XiaomiVacuumAction.START_AUTO_EMPTY: lambda device: device.status.dust_collection_available,
+    XiaomiVacuumAction.CLEAR_WARNING: lambda device: device.status.has_warning,
+    XiaomiVacuumAction.START: lambda device: not device.status.started
     or device.status.returning
     or device.status.returning_paused,
-    DreameVacuumAction.START_CUSTOM: lambda device: not device.status.started
+    XiaomiVacuumAction.START_CUSTOM: lambda device: not device.status.started
     or device.status.returning
     or device.status.returning_paused,
-    DreameVacuumAction.PAUSE: lambda device: device.status.started
+    XiaomiVacuumAction.PAUSE: lambda device: device.status.started
     and not device.status.returning_paused
     and not device.status.paused,
-    DreameVacuumAction.CHARGE: lambda device: not device.status.docked and not device.status.returning,
-    DreameVacuumAction.STOP: lambda device: not device.status.fast_mapping and device.status.started,
+    XiaomiVacuumAction.CHARGE: lambda device: not device.status.docked and not device.status.returning,
+    XiaomiVacuumAction.STOP: lambda device: not device.status.fast_mapping and device.status.started,
 }
 
 
-def PIID(property: DreameVacuumProperty, mapping=DreameVacuumPropertyMapping) -> int | None:
+def PIID(property: XiaomiVacuumProperty, mapping=XiaomiVacuumPropertyMapping) -> int | None:
     if property in mapping:
         return mapping[property]["piid"]
 
 
-def DIID(property: DreameVacuumProperty, mapping=DreameVacuumPropertyMapping) -> str | None:
+def DIID(property: XiaomiVacuumProperty, mapping=XiaomiVacuumPropertyMapping) -> str | None:
     if property in mapping:
         return f'{mapping[property]["siid"]}.{mapping[property]["piid"]}'
 
@@ -1639,13 +1682,13 @@ class MapRendererLayer(IntEnum):
 @dataclass
 class CleaningHistory:
     date: datetime = None
-    status: DreameVacuumStatus = None
+    status: XiaomiVacuumStatus = None
     cleaning_time: int = 0
     cleaned_area: int = 0
-    suction_level: DreameVacuumSuctionLevel = None
+    suction_level: XiaomiVacuumSuctionLevel = None
     file_name: str = None
     completed: bool = None
-    water_tank: DreameVacuumWaterTank = None
+    water_tank: XiaomiVacuumWaterTank = None
 
 
 @dataclass

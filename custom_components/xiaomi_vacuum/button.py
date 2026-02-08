@@ -1,4 +1,4 @@
-"""Support for Dreame Vacuum buttons."""
+"""Support for Xiaomi Vacuum buttons."""
 
 from __future__ import annotations
 
@@ -19,98 +19,98 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
-from .entity import DreameVacuumEntity, DreameVacuumEntityDescription
-from .dreame import DreameVacuumAction
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
+from .entity import XiaomiVacuumEntity, XiaomiVacuumEntityDescription
+from .xiaomi import XiaomiVacuumAction
 
 
 @dataclass
-class DreameVacuumButtonEntityDescription(DreameVacuumEntityDescription, ButtonEntityDescription):
-    """Describes Dreame Vacuum Button entity."""
+class XiaomiVacuumButtonEntityDescription(XiaomiVacuumEntityDescription, ButtonEntityDescription):
+    """Describes Xiaomi Vacuum Button entity."""
 
     parameters_fn: Callable[[object], Any] = None
     action_fn: Callable[[object]] = None
 
 
 BUTTONS: tuple[ButtonEntityDescription, ...] = (
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.RESET_MAIN_BRUSH,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.RESET_MAIN_BRUSH,
         icon="mdi:car-turbocharger",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device)
+            XiaomiVacuumEntityDescription().exists_fn(description, device)
             and device.status.main_brush_life is not None
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.RESET_SIDE_BRUSH,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.RESET_SIDE_BRUSH,
         icon="mdi:pinwheel-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device)
+            XiaomiVacuumEntityDescription().exists_fn(description, device)
             and device.status.side_brush_life is not None
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.RESET_FILTER,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.RESET_FILTER,
         icon="mdi:air-filter",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device) and device.status.filter_life is not None
+            XiaomiVacuumEntityDescription().exists_fn(description, device) and device.status.filter_life is not None
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.RESET_SENSOR,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.RESET_SENSOR,
         icon="mdi:radar",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device)
+            XiaomiVacuumEntityDescription().exists_fn(description, device)
             and device.status.sensor_dirty_life is not None
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.RESET_MOP_PAD,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.RESET_MOP_PAD,
         icon="mdi:hydro-power",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device) and device.status.mop_life is not None
+            XiaomiVacuumEntityDescription().exists_fn(description, device) and device.status.mop_life is not None
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.RESET_SILVER_ION,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.RESET_SILVER_ION,
         icon="mdi:shimmer",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device)
+            XiaomiVacuumEntityDescription().exists_fn(description, device)
             and device.status.silver_ion_life is not None
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.RESET_DETERGENT,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.RESET_DETERGENT,
         icon="mdi:chart-bubble",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device) and device.status.detergent_life is not None
+            XiaomiVacuumEntityDescription().exists_fn(description, device) and device.status.detergent_life is not None
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.START_AUTO_EMPTY,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.START_AUTO_EMPTY,
         icon_fn=lambda value, device: (
             "mdi:delete-off"
             if not device.status.dust_collection_available
             else "mdi:delete-restore" if device.status.auto_emptying else "mdi:delete-empty"
         ),
         exists_fn=lambda description, device: bool(
-            DreameVacuumEntityDescription().exists_fn(description, device) and device.status.auto_empty_base_available
+            XiaomiVacuumEntityDescription().exists_fn(description, device) and device.status.auto_empty_base_available
         ),
     ),
-    DreameVacuumButtonEntityDescription(
-        action_key=DreameVacuumAction.CLEAR_WARNING,
+    XiaomiVacuumButtonEntityDescription(
+        action_key=XiaomiVacuumAction.CLEAR_WARNING,
         icon="mdi:clipboard-check-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
         parameters_fn=lambda device: [device.status.error.value],
     ),
-    DreameVacuumButtonEntityDescription(
+    XiaomiVacuumButtonEntityDescription(
         key="start_fast_mapping",
         icon="mdi:map-plus",
         entity_category=EntityCategory.CONFIG,
@@ -118,7 +118,7 @@ BUTTONS: tuple[ButtonEntityDescription, ...] = (
         action_fn=lambda device: device.start_fast_mapping(),
         exists_fn=lambda description, device: device.status.lidar_navigation,
     ),
-    DreameVacuumButtonEntityDescription(
+    XiaomiVacuumButtonEntityDescription(
         key="start_mapping",
         icon="mdi:broom",
         entity_category=EntityCategory.CONFIG,
@@ -127,7 +127,7 @@ BUTTONS: tuple[ButtonEntityDescription, ...] = (
         entity_registry_enabled_default=False,
         exists_fn=lambda description, device: device.status.lidar_navigation,
     ),
-    DreameVacuumButtonEntityDescription(
+    XiaomiVacuumButtonEntityDescription(
         name="Self-Clean",
         key="self_clean",
         icon="mdi:washing-machine",
@@ -137,7 +137,7 @@ BUTTONS: tuple[ButtonEntityDescription, ...] = (
         action_fn=lambda device: device.start_washing(),
         exists_fn=lambda description, device: device.status.self_wash_base_available,
     ),
-    DreameVacuumButtonEntityDescription(
+    XiaomiVacuumButtonEntityDescription(
         name="Self-Clean Pause",
         key="self_clean_pause",
         icon="mdi:washing-machine-off",
@@ -145,14 +145,14 @@ BUTTONS: tuple[ButtonEntityDescription, ...] = (
         action_fn=lambda device: device.pause_washing(),
         exists_fn=lambda description, device: device.status.self_wash_base_available,
     ),
-    DreameVacuumButtonEntityDescription(
+    XiaomiVacuumButtonEntityDescription(
         key="start_drying",
         icon="mdi:weather-sunny",
         available_fn=lambda device: bool(device.status.drying_available and not device.status.drying),
         action_fn=lambda device: device.start_drying(),
         exists_fn=lambda description, device: device.status.self_wash_base_available,
     ),
-    DreameVacuumButtonEntityDescription(
+    XiaomiVacuumButtonEntityDescription(
         key="stop_drying",
         icon="mdi:weather-sunny-off",
         available_fn=lambda device: bool(device.status.drying_available and device.status.drying),
@@ -167,24 +167,24 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Dreame Vacuum Button based on a config entry."""
-    coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Xiaomi Vacuum Button based on a config entry."""
+    coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        DreameVacuumButtonEntity(coordinator, description)
+        XiaomiVacuumButtonEntity(coordinator, description)
         for description in BUTTONS
         if description.exists_fn(description, coordinator.device)
     )
 
 
-class DreameVacuumButtonEntity(DreameVacuumEntity, ButtonEntity):
-    """Defines a Dreame Vacuum Button entity."""
+class XiaomiVacuumButtonEntity(XiaomiVacuumEntity, ButtonEntity):
+    """Defines a Xiaomi Vacuum Button entity."""
 
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
-        description: DreameVacuumButtonEntityDescription,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
+        description: XiaomiVacuumButtonEntityDescription,
     ) -> None:
-        """Initialize a Dreame Vacuum Button entity."""
+        """Initialize a Xiaomi Vacuum Button entity."""
         super().__init__(coordinator, description)
 
     async def async_press(self, **kwargs: Any) -> None:

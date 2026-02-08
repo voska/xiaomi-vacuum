@@ -95,12 +95,12 @@ entities:
             name: ' '
             tap_action: 
               action: call-service
-              service: dreame_vacuum.select_select_next
+              service: xiaomi_vacuum.select_select_next
               service_data:
                 entity_id: ${vars[2].entity_id}
             double_tap_action:
               action: call-service
-              service: dreame_vacuum.select_select_previous
+              service: xiaomi_vacuum.select_select_previous
               service_data:
                 entity_id: ${vars[2].entity_id}
             hold_action:
@@ -116,12 +116,12 @@ entities:
             name: ' '
             tap_action:
               action: call-service
-              service: dreame_vacuum.select_select_next
+              service: xiaomi_vacuum.select_select_next
               service_data:
                 entity_id: ${vars[3].entity_id}
             double_tap_action:
               action: call-service
-              service: dreame_vacuum.select_select_previous
+              service: xiaomi_vacuum.select_select_previous
               service_data:
                 entity_id: ${vars[3].entity_id}
             styles:
@@ -135,12 +135,12 @@ entities:
             name: ' '
             tap_action:
               action: call-service
-              service: dreame_vacuum.select_select_next
+              service: xiaomi_vacuum.select_select_next
               service_data:
                 entity_id: ${vars[4].entity_id}
             double_tap_action:
               action: call-service
-              service: dreame_vacuum.select_select_previous
+              service: xiaomi_vacuum.select_select_previous
               service_data:
                 entity_id: ${vars[4].entity_id}
             hold_action:
@@ -156,7 +156,7 @@ entities:
             name: ' '
             tap_action:
               action: call-service
-              service: dreame_vacuum.select_select_next
+              service: xiaomi_vacuum.select_select_next
               service_data:
                 entity_id: ${vars[5].entity_id}
                 cycle: false
@@ -175,7 +175,7 @@ entities:
             name: ' '
             tap_action:
               action: call-service
-              service: dreame_vacuum.select_select_previous
+              service: xiaomi_vacuum.select_select_previous
               service_data:
                 entity_id: ${vars[5].entity_id}
                 cycle: false

@@ -54,7 +54,7 @@
         "data": {
           "devices": "Obsługiwane urządzenia"
         },
-        "description": "Wybierz urządzenie Dreame Vacuum, które chcesz skonfigurować."
+        "description": "Wybierz urządzenie Xiaomi Vacuum, które chcesz skonfigurować."
       },
       "donation": {
         "data": {
@@ -72,7 +72,7 @@
         }
       },
       "reauth_confirm": {
-        "description": "Integracja Dreame Vacuum musi ponownie uwierzytelnić twoje konto, aby zaktualizować tokeny lub dodać brakujące dane uwierzytelniające do chmury.",
+        "description": "Integracja Xiaomi Vacuum musi ponownie uwierzytelnić twoje konto, aby zaktualizować tokeny lub dodać brakujące dane uwierzytelniające do chmury.",
         "title": "Ponowne uwierzytelnienie integracji"
       }
     }

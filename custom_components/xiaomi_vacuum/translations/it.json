@@ -72,7 +72,7 @@
         }
       },
       "reauth_confirm": {
-        "description": "L'integrazione Dreame Vacuum ha bisogno di una ri-autenticazione al tuo account per permettere di aggiornare i tokens o per aggiungere le credenziali del cloud non presenti.",
+        "description": "L'integrazione Xiaomi Vacuum ha bisogno di una ri-autenticazione al tuo account per permettere di aggiornare i tokens o per aggiungere le credenziali del cloud non presenti.",
         "title": "Ri-autenticazione dell'integrazione"
       }
     }

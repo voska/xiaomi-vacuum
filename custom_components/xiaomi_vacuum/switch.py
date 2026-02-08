@@ -1,4 +1,4 @@
-"""Support for Dreame Vacuum switches."""
+"""Support for Xiaomi Vacuum switches."""
 
 from __future__ import annotations
 
@@ -19,100 +19,100 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
-from .entity import DreameVacuumEntity, DreameVacuumEntityDescription
-from .dreame import DreameVacuumProperty
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
+from .entity import XiaomiVacuumEntity, XiaomiVacuumEntityDescription
+from .xiaomi import XiaomiVacuumProperty
 
 
 @dataclass
-class DreameVacuumSwitchEntityDescription(DreameVacuumEntityDescription, SwitchEntityDescription):
-    """Describes Dreame Vacuum Switch entity."""
+class XiaomiVacuumSwitchEntityDescription(XiaomiVacuumEntityDescription, SwitchEntityDescription):
+    """Describes Xiaomi Vacuum Switch entity."""
 
     set_fn: Callable[[object, int]] = None
 
 
-SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.RESUME_CLEANING,
+SWITCHES: tuple[XiaomiVacuumSwitchEntityDescription, ...] = (
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.RESUME_CLEANING,
         icon="mdi:play-pause",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.CARPET_BOOST,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.CARPET_BOOST,
         icon_fn=lambda value, device: "mdi:upload-off" if value == 0 else "mdi:upload",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.OBSTACLE_AVOIDANCE,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.OBSTACLE_AVOIDANCE,
         icon_fn=lambda value, device: "mdi:video-3d-off" if value == 0 else "mdi:video-3d",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.CUSTOMIZED_CLEANING,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.CUSTOMIZED_CLEANING,
         icon="mdi:home-search",
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.CHILD_LOCK,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.CHILD_LOCK,
         icon_fn=lambda value, device: "mdi:lock-off" if value == 0 else "mdi:lock",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.TIGHT_MOPPING,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.TIGHT_MOPPING,
         icon="mdi:heating-coil",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.DND,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.DND,
         name="DND",
         icon_fn=lambda value, device: "mdi:minus-circle-off-outline" if not value else "mdi:minus-circle-outline",
         format_fn=lambda value, device: bool(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.MULTI_FLOOR_MAP,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.MULTI_FLOOR_MAP,
         icon_fn=lambda value, device: "mdi:layers-off" if value == 0 else "mdi:layers",
         entity_category=EntityCategory.CONFIG,
         set_fn=lambda device, value: device.set_multi_map(value),
         # exists_fn=lambda description, device: bool(
-        #    DreameVacuumEntityDescription().exists_fn(description, device)
+        #    XiaomiVacuumEntityDescription().exists_fn(description, device)
         #    and device.status.lidar_navigation
         # ),
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.AUTO_DUST_COLLECTING,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.AUTO_DUST_COLLECTING,
         icon_fn=lambda value, device: "mdi:autorenew-off" if value == 0 else "mdi:autorenew",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.CARPET_RECOGNITION,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.CARPET_RECOGNITION,
         icon="mdi:rug",
         entity_category=EntityCategory.CONFIG,
         set_fn=lambda device, value: device.set_carpet_recognition(value),
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.SELF_CLEAN,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.SELF_CLEAN,
         icon="mdi:water-sync",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.WATER_ELECTROLYSIS,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.WATER_ELECTROLYSIS,
         icon="mdi:lightning-bolt",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.AUTO_WATER_REFILLING,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.AUTO_WATER_REFILLING,
         icon="mdi:water-boiler-auto",
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.INTELLIGENT_RECOGNITION,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.INTELLIGENT_RECOGNITION,
         icon="mdi:wifi-marker",
         entity_category=EntityCategory.CONFIG,
         exists_fn=lambda description, device: device.status.auto_switch_settings_available
-        and DreameVacuumEntityDescription().exists_fn(description, device),
+        and XiaomiVacuumEntityDescription().exists_fn(description, device),
         available_fn=lambda device: device.status.multi_map,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         key="auto_drying",
         icon="mdi:hair-dryer",
         entity_category=EntityCategory.CONFIG,
@@ -120,33 +120,33 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         exists_fn=lambda description, device: device.status.auto_drying is not None,
         set_fn=lambda device, value: device.set_auto_drying(value),
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.CARPET_AVOIDANCE,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.CARPET_AVOIDANCE,
         icon="mdi:close-box-outline",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda value, device: device.status.carpet_avoidance,
         format_fn=lambda value, device: 1 if value else 2,
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.AUTO_ADD_DETERGENT,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.AUTO_ADD_DETERGENT,
         icon="mdi:chart-bubble",
         value_fn=lambda value, device: device.status.auto_add_detergent,
         entity_category=EntityCategory.CONFIG,
         format_fn=lambda value, device: int(value),
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.MAP_SAVING,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.MAP_SAVING,
         icon="mdi:map-legend",
         entity_category=EntityCategory.CONFIG,
         format_fn=lambda value, device: int(value),
     ),
-    DreameVacuumSwitchEntityDescription(
-        property_key=DreameVacuumProperty.AUTO_MOUNT_MOP,
+    XiaomiVacuumSwitchEntityDescription(
+        property_key=XiaomiVacuumProperty.AUTO_MOUNT_MOP,
         icon="mdi:google-circles-group",
         entity_category=EntityCategory.CONFIG,
         format_fn=lambda value, device: int(value),
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         key="cleaning_sequence",
         icon="mdi:order-numeric-ascending",
         value_fn=lambda value, device: device.status.custom_order,
@@ -164,7 +164,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         format_fn=lambda value, device: int(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         name="AI Obstacle Detection",
         key="ai_obstacle_detection",
         icon_fn=lambda value, device: "mdi:robot-off" if not value else "mdi:robot",
@@ -173,7 +173,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_ai_obstacle_detection(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         name="AI Image Upload",
         key="ai_obstacle_image_upload",
         icon="mdi:cloud-upload",
@@ -185,7 +185,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_obstacle_image_upload(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         name="AI Obstacle Picture",
         key="ai_obstacle_picture",
         icon_fn=lambda value, device: "mdi:camera-off" if not value else "mdi:camera",
@@ -196,7 +196,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_obstacle_picture(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         name="AI Pet Detection",
         key="ai_pet_detection",
         icon_fn=lambda value, device: "mdi:dog-side-off" if not value else "mdi:dog-side",
@@ -208,7 +208,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_pet_detection(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         name="AI Human Detection",
         key="ai_human_detection",
         icon_fn=lambda value, device: "mdi:account-off" if not value else "mdi:account",
@@ -220,7 +220,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_human_detection(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         name="AI Furniture Detection",
         key="ai_furniture_detection",
         icon="mdi:table-furniture",
@@ -232,7 +232,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_furniture_detection(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         name="AI Fluid Detection",
         key="ai_fluid_detection",
         icon_fn=lambda value, device: "mdi:water-off-outline" if not value else "mdi:water-outline",
@@ -244,7 +244,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_fluid_detection(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         key="fill_light",
         icon_fn=lambda value, device: "mdi:brightness-2" if not value else "mdi:brightness-auto",
         value_fn=lambda value, device: device.status.fill_light,
@@ -254,7 +254,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_fill_light(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         key="collision_avoidance",
         icon_fn=lambda value, device: "mdi:sign-direction-remove" if not value else "mdi:sign-direction",
         value_fn=lambda value, device: device.status.collision_avoidance,
@@ -264,7 +264,7 @@ SWITCHES: tuple[DreameVacuumSwitchEntityDescription, ...] = (
         set_fn=lambda device, value: device.set_collision_avoidance(value),
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSwitchEntityDescription(
+    XiaomiVacuumSwitchEntityDescription(
         key="stain_avoidance",
         icon="mdi:liquid-spot",
         value_fn=lambda value, device: bool(device.status.stain_avoidance == 2),
@@ -283,26 +283,26 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Dreame Vacuum switch based on a config entry."""
-    coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Xiaomi Vacuum switch based on a config entry."""
+    coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        DreameVacuumSwitchEntity(coordinator, description)
+        XiaomiVacuumSwitchEntity(coordinator, description)
         for description in SWITCHES
         if description.exists_fn(description, coordinator.device)
     )
 
 
-class DreameVacuumSwitchEntity(DreameVacuumEntity, SwitchEntity):
-    """Defines a Dreame Vacuum Switch entity."""
+class XiaomiVacuumSwitchEntity(XiaomiVacuumEntity, SwitchEntity):
+    """Defines a Xiaomi Vacuum Switch entity."""
 
-    entity_description: DreameVacuumSwitchEntityDescription
+    entity_description: XiaomiVacuumSwitchEntityDescription
 
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
-        description: DreameVacuumSwitchEntityDescription,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
+        description: XiaomiVacuumSwitchEntityDescription,
     ) -> None:
-        """Initialize a Dreame Vacuum switch entity."""
+        """Initialize a Xiaomi Vacuum switch entity."""
         super().__init__(coordinator, description)
         self._attr_is_on = bool(self.native_value)
 
@@ -312,15 +312,15 @@ class DreameVacuumSwitchEntity(DreameVacuumEntity, SwitchEntity):
         super()._handle_coordinator_update()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the Dreame Vacuum sync receive switch."""
+        """Turn off the Xiaomi Vacuum sync receive switch."""
         await self.async_set_state(0)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the Dreame Vacuum sync receive switch."""
+        """Turn on the Xiaomi Vacuum sync receive switch."""
         await self.async_set_state(1)
 
     async def async_set_state(self, state) -> None:
-        """Turn on or off the Dreame Vacuum sync receive switch."""
+        """Turn on or off the Xiaomi Vacuum sync receive switch."""
         if not self.available:
             raise HomeAssistantError("Entity unavailable")
 

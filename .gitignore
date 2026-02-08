@@ -4,3 +4,5 @@
 *.sln
 /env
 *.zip
+__pycache__/
+*.pyc

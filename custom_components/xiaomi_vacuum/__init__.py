@@ -1,10 +1,10 @@
-"""The Dreame Vacuum component."""
+"""The Xiaomi Vacuum component."""
 from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN
-from .coordinator import DreameVacuumDataUpdateCoordinator
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
 import warnings
 
 # Suppress python-miio FutureWarning on Python 3.13
@@ -30,8 +30,8 @@ PLATFORMS = (
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Dreame Vacuum from a config entry."""
-    coordinator = DreameVacuumDataUpdateCoordinator(hass, entry=entry)
+    """Set up Xiaomi Vacuum from a config entry."""
+    coordinator = XiaomiVacuumDataUpdateCoordinator(hass, entry=entry)
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
@@ -44,9 +44,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload Dreame Vacuum config entry."""
+    """Unload Xiaomi Vacuum config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+        coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
         coordinator.device.listen(None)
         coordinator.device.disconnect()
         del coordinator.device

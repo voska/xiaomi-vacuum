@@ -5,7 +5,7 @@ The integration adds the following services to vacuum domain.
 Services for actions that are not available via an entity.
 <a href="https://my.home-assistant.io/redirect/developer_services/" target="_blank"><img src="https://my.home-assistant.io/badges/developer_services.svg" alt="Open your Home Assistant instance and show your service developer tools." /></a>
 
-### `dreame_vacuum.vacuum_clean_segment`
+### `xiaomi_vacuum.vacuum_clean_segment`
 
 Start selected room cleaning with optional customized cleaning parameters. 
 > - If you are using integration with map feature, you can acquire segment ids from vacuum entity attributes.
@@ -15,7 +15,7 @@ Start selected room cleaning with optional customized cleaning parameters.
 
 - Clean room 3
     ```yaml
-    service: dreame_vacuum.vacuum_clean_segment
+    service: xiaomi_vacuum.vacuum_clean_segment
     data:
       segments: 3
     target:
@@ -23,7 +23,7 @@ Start selected room cleaning with optional customized cleaning parameters.
     ```
 - Clean room 3 and 5
     ```yaml
-    service: dreame_vacuum.vacuum_clean_segment
+    service: xiaomi_vacuum.vacuum_clean_segment
     data:
       segments:
         - 3
@@ -34,7 +34,7 @@ Start selected room cleaning with optional customized cleaning parameters.
 
 - Clean room 3 and 5 two times
     ```yaml
-    service: dreame_vacuum.vacuum_clean_segment
+    service: xiaomi_vacuum.vacuum_clean_segment
     data:
       segments:
         - 3
@@ -46,7 +46,7 @@ Start selected room cleaning with optional customized cleaning parameters.
 
 - Clean room 2 two times and 5 one time
     ```yaml
-    service: dreame_vacuum.vacuum_clean_segment
+    service: xiaomi_vacuum.vacuum_clean_segment
     data:
       segments:
         - 3
@@ -60,7 +60,7 @@ Start selected room cleaning with optional customized cleaning parameters.
 
 - Clean room 3 and 5 with high fan speed
     ```yaml
-    service: dreame_vacuum.vacuum_clean_segment
+    service: xiaomi_vacuum.vacuum_clean_segment
     data:
       segments:
         - 3
@@ -72,7 +72,7 @@ Start selected room cleaning with optional customized cleaning parameters.
 
 - Clean room 3 with high fan speed and 5 with quiet fan speed
     ```yaml
-    service: dreame_vacuum.vacuum_clean_segment
+    service: xiaomi_vacuum.vacuum_clean_segment
     data:
       segments:
         - 3
@@ -85,7 +85,7 @@ Start selected room cleaning with optional customized cleaning parameters.
     ```
 
 
-### `dreame_vacuum.vacuum_clean_zone`
+### `xiaomi_vacuum.vacuum_clean_zone`
 
 Start selected zone cleaning with optional customized cleaning parameters.
 
@@ -95,7 +95,7 @@ Start selected zone cleaning with optional customized cleaning parameters.
 
 - Clean selected zone
     ```yaml
-    service: dreame_vacuum.vacuum_clean_zone
+    service: xiaomi_vacuum.vacuum_clean_zone
     data:
       zone: 
         - 819
@@ -107,7 +107,7 @@ Start selected zone cleaning with optional customized cleaning parameters.
     ```
 - Clean multiple zones
     ```yaml
-    service: dreame_vacuum.vacuum_clean_zone
+    service: xiaomi_vacuum.vacuum_clean_zone
     data:
       zone: 
         - - 819
@@ -123,7 +123,7 @@ Start selected zone cleaning with optional customized cleaning parameters.
     ```
 - Clean selected zone two times
     ```yaml
-    service: dreame_vacuum.vacuum_clean_zone
+    service: xiaomi_vacuum.vacuum_clean_zone
     data:
       zone: 
         - 819
@@ -137,7 +137,7 @@ Start selected zone cleaning with optional customized cleaning parameters.
 
 - Clean first zone two times second zone three times
     ```yaml
-    service: dreame_vacuum.vacuum_clean_zone
+    service: xiaomi_vacuum.vacuum_clean_zone
     data:
       zone: 
         - - 819
@@ -156,7 +156,7 @@ Start selected zone cleaning with optional customized cleaning parameters.
     ```tity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_clean_spot`
+### `xiaomi_vacuum.vacuum_clean_spot`
 
 Start selected spot cleaning with optional customized cleaning parameters.
 
@@ -168,7 +168,7 @@ Start selected spot cleaning with optional customized cleaning parameters.
 
 - Clean selected spot
     ```yaml
-    service: dreame_vacuum.vacuum_clean_spot
+    service: xiaomi_vacuum.vacuum_clean_spot
     data:
       points: 
         - 819
@@ -178,7 +178,7 @@ Start selected spot cleaning with optional customized cleaning parameters.
     ```
 - Clean multiple spots
     ```yaml
-    service: dreame_vacuum.vacuum_clean_spot
+    service: xiaomi_vacuum.vacuum_clean_spot
     data:
       points: 
         - - 819
@@ -190,7 +190,7 @@ Start selected spot cleaning with optional customized cleaning parameters.
     ```
 - Clean selected spot two times
     ```yaml
-    service: dreame_vacuum.vacuum_clean_spot
+    service: xiaomi_vacuum.vacuum_clean_spot
     data:
       points: 
         - 819
@@ -202,7 +202,7 @@ Start selected spot cleaning with optional customized cleaning parameters.
 
 - Clean first spot two times second spot three times
     ```yaml
-    service: dreame_vacuum.vacuum_clean_spot
+    service: xiaomi_vacuum.vacuum_clean_spot
     data:
       points: 
         - - 819
@@ -217,7 +217,7 @@ Start selected spot cleaning with optional customized cleaning parameters.
     ```tity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_set_dnd`
+### `xiaomi_vacuum.vacuum_set_dnd`
 
 Set do not disturb settings. *(This service exists because the lack of **date_time** entity on Home Assistant)*
 
@@ -225,7 +225,7 @@ Set do not disturb settings. *(This service exists because the lack of **date_ti
 
 - Set DND start time
     ```yaml
-    service: dreame_vacuum.vacuum_set_dnd
+    service: xiaomi_vacuum.vacuum_set_dnd
     data:
       dnd_start: "20:00"
     target:
@@ -234,7 +234,7 @@ Set do not disturb settings. *(This service exists because the lack of **date_ti
 
 - Set DND start and end times
     ```yaml
-    service: dreame_vacuum.vacuum_set_dnd
+    service: xiaomi_vacuum.vacuum_set_dnd
     data:
         dnd_start: "20:00"
         dnd_end: "08:00"
@@ -244,22 +244,22 @@ Set do not disturb settings. *(This service exists because the lack of **date_ti
 
 - Disable DND feature
     ```yaml
-    service: dreame_vacuum.vacuum_set_dnd
+    service: xiaomi_vacuum.vacuum_set_dnd
     data:
         dnd_enabled: false
     target:
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_remote_control_move_step`
+### `xiaomi_vacuum.vacuum_remote_control_move_step`
 
 Send remote control command to vacuum. *(For use of a custom lovelace card)*
 
-### `dreame_vacuum.vacuum_install_voice_pack`
+### `xiaomi_vacuum.vacuum_install_voice_pack`
 
 Install an official voice pack.
 
-### `dreame_vacuum.vacuum_set_cleaning_sequence`
+### `xiaomi_vacuum.vacuum_set_cleaning_sequence`
 
 Set room cleaning sequence on current map. 
 
@@ -269,7 +269,7 @@ Set room cleaning sequence on current map.
 
 - Set room cleaning sequence on current map to 3, 5, 4, 2, 1
     ```yaml
-    service: dreame_vacuum.vacuum_set_cleaning_sequence
+    service: xiaomi_vacuum.vacuum_set_cleaning_sequence
     data:
         cleaning_sequence: 
           - 3
@@ -283,14 +283,14 @@ Set room cleaning sequence on current map.
 
 - Disable custom cleaning sequence on current map
     ```yaml
-    service: dreame_vacuum.vacuum_set_cleaning_sequence
+    service: xiaomi_vacuum.vacuum_set_cleaning_sequence
     data:
         cleaning_sequence: []
     target:
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_set_custom_cleaning`
+### `xiaomi_vacuum.vacuum_set_custom_cleaning`
 
 Set customized room cleaning parameters on current map. 
 
@@ -300,7 +300,7 @@ Set customized room cleaning parameters on current map.
 
 - Set room 1 fan speed to quiet, water level to low, cleaning times to 2 and room 5 fan speed to turbo, water level to medium, repeats to 1
     ```yaml
-    service: dreame_vacuum.vacuum_set_custom_cleaning
+    service: xiaomi_vacuum.vacuum_set_custom_cleaning
     data:
         segment_id: 
           - 1
@@ -318,14 +318,14 @@ Set customized room cleaning parameters on current map.
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_reset_consumable`
+### `xiaomi_vacuum.vacuum_reset_consumable`
 
 Reset a consumable life by type.
 
 **Examples:**
 - Reset Main Brush Life
     ```yaml
-    service: dreame_vacuum.vacuum_reset_consumable
+    service: xiaomi_vacuum.vacuum_reset_consumable
     data:
         consumable: "main_brush"
     target:
@@ -334,7 +334,7 @@ Reset a consumable life by type.
 
 - Reset Mop Pad Life
     ```yaml
-    service: dreame_vacuum.vacuum_reset_consumable
+    service: xiaomi_vacuum.vacuum_reset_consumable
     data:
         consumable: "mop_pad"
     target:
@@ -384,7 +384,7 @@ Map editing services also uses the vacuum domain because all services are availa
 
 <a href="https://my.home-assistant.io/redirect/developer_services/" target="_blank"><img src="https://my.home-assistant.io/badges/developer_services.svg" alt="Open your Home Assistant instance and show your service developer tools." /></a>
 
-### `dreame_vacuum.vacuum_request_map`
+### `xiaomi_vacuum.vacuum_request_map`
 
 Request device to upload a new map to the cloud. *(This service is useful when cloud connection is not used and another integration used for handing the map rendering)*
 
@@ -394,7 +394,7 @@ Request device to upload a new map to the cloud. *(This service is useful when c
 > - Relocating
 > - After a map edit until it moves
 
-### `dreame_vacuum.vacuum_select_map`
+### `xiaomi_vacuum.vacuum_select_map`
 
 Change currently selected map. (Only possible of multi-floor map is enabled)
 
@@ -406,14 +406,14 @@ Change currently selected map. (Only possible of multi-floor map is enabled)
 
 - Set current map as map with id 27
     ```yaml
-    service: dreame_vacuum.vacuum_select_map
+    service: xiaomi_vacuum.vacuum_select_map
     data:
         map_id: 27
     target:
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_delete_map`
+### `xiaomi_vacuum.vacuum_delete_map`
 
 Delete a map.
 
@@ -424,14 +424,14 @@ Delete a map.
 
 - Set delete map with id 48
     ```yaml
-    service: dreame_vacuum.vacuum_delete_map
+    service: xiaomi_vacuum.vacuum_delete_map
     data:
         map_id: 48
     target:
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_rename_map`
+### `xiaomi_vacuum.vacuum_rename_map`
 
 Rename a map.
 
@@ -442,7 +442,7 @@ Rename a map.
 
 - Rename map with id 14 to "Second Floor"
     ```yaml
-    service: dreame_vacuum.vacuum_rename_map
+    service: xiaomi_vacuum.vacuum_rename_map
     data:
         map_id: 14
         map_name: "Second Floor"
@@ -450,7 +450,7 @@ Rename a map.
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_set_restricted_zone`
+### `xiaomi_vacuum.vacuum_set_restricted_zone`
 
 Set invisible walls, no go and no mopping zones on current map.
 
@@ -460,7 +460,7 @@ Set invisible walls, no go and no mopping zones on current map.
 **Examples:**
 - Define virtual walls, restricted zones, and/or no mop zones
     ```yaml
-    service: dreame_vacuum.vacuum_set_restricted_zone
+    service: xiaomi_vacuum.vacuum_set_restricted_zone
     data:
         walls: 
             - - 819
@@ -481,15 +481,15 @@ Set invisible walls, no go and no mopping zones on current map.
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_save_temporary_map`
+### `xiaomi_vacuum.vacuum_save_temporary_map`
 
 Save newly created map. (Device ask you to do when first map is created after factory reset)
 
-### `dreame_vacuum.vacuum_discard_temporary_map`
+### `xiaomi_vacuum.vacuum_discard_temporary_map`
 
 Discard newly created map.
 
-### `dreame_vacuum.vacuum_replace_temporary_map`
+### `xiaomi_vacuum.vacuum_replace_temporary_map`
 
 Replace new map with an old one.
 
@@ -500,14 +500,14 @@ Replace new map with an old one.
 
 - Replace new map with map with id 39
     ```yaml
-    service: dreame_vacuum.vacuum_replace_temporary_map
+    service: xiaomi_vacuum.vacuum_replace_temporary_map
     data:
         map_id: 39
     target:
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_merge_segments`
+### `xiaomi_vacuum.vacuum_merge_segments`
 
 Merge two rooms from a map.
 
@@ -520,7 +520,7 @@ Merge two rooms from a map.
 
 - Merge rooms 4 with 6 on the map with 63 (Room 6 will be deleted)
     ```yaml
-    service: dreame_vacuum.vacuum_replace_temporary_map
+    service: xiaomi_vacuum.vacuum_replace_temporary_map
     data:
         map_id: 63
         segments: 
@@ -532,7 +532,7 @@ Merge two rooms from a map.
 
 - Merge rooms 6 with 4 on the map with 63 (Room 4 will be deleted)
     ```yaml
-    service: dreame_vacuum.vacuum_replace_temporary_map
+    service: xiaomi_vacuum.vacuum_replace_temporary_map
     data:
         map_id: 63
         segments: 
@@ -542,7 +542,7 @@ Merge two rooms from a map.
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_split_segments`
+### `xiaomi_vacuum.vacuum_split_segments`
 
 Split a map room into to different rooms.
 
@@ -556,7 +556,7 @@ Split a map room into to different rooms.
 
 - Split room 4 from line coordinates (A new room will be created and room 4 settings will set to defaults)
     ```yaml
-    service: dreame_vacuum.vacuum_replace_temporary_map
+    service: xiaomi_vacuum.vacuum_replace_temporary_map
     data:
         map_id: 63
         segment: 4
@@ -569,7 +569,7 @@ Split a map room into to different rooms.
         entity_id: vacuum.vacuum
     ```
 
-### `dreame_vacuum.vacuum_rename_segment`
+### `xiaomi_vacuum.vacuum_rename_segment`
 
 Set custom name for a room in current map.
 
@@ -579,7 +579,7 @@ Set custom name for a room in current map.
 **Example:**
 - Rename room 3 to "Dining Room"
     ```yaml
-    service: dreame_vacuum.vacuum_rename_segment
+    service: xiaomi_vacuum.vacuum_rename_segment
     data:
         segment_id: 3
         segment_name: "Dining Room"
@@ -590,19 +590,19 @@ Set custom name for a room in current map.
 ## Other Services
 Integration adds <a href="https://www.home-assistant.io/integrations/input_select/#services" target="_blank_">**input_select** services</a> that are missing from the **select** entity to generated select entities for ease of use.
 
-### `dreame_vacuum.select_select_first`
+### `xiaomi_vacuum.select_select_first`
 
 Select first option from options list
 
-### `dreame_vacuum.select_select_last`
+### `xiaomi_vacuum.select_select_last`
 
 Select last option from options list
 
-### `dreame_vacuum.select_select_previous`
+### `xiaomi_vacuum.select_select_previous`
 
 Select previous option from options list
 
-### `dreame_vacuum.select_select_next`
+### `xiaomi_vacuum.select_select_next`
 
 Select next option from options list
 

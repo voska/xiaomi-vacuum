@@ -14,17 +14,10 @@ from .exceptions import DeviceException
 
 from . import VERSION
 
-DATA_URL: Final = (
-    "aHR0cHM6Ly93d3cuZ29vZ2xlLWFuYWx5dGljcy5jb20vbXAvY29sbGVjdD9tZWFzdXJlbWVudF9pZD1HLTcwN1g2N0MzWlAmYXBpX3NlY3JldD1jX2taVDJlV1N1Q3Q4Q2swTGdtaE1n"
-)
-DATA_JSON: Final = (
-    "e3siY2xpZW50X2lkIjoiezB9IiwiZXZlbnRzIjpbe3sicGFyYW1zIjp7eyJ2ZXJzaW9uIjoiezF9IiwibW9kZWwiOiJ7Mn0iLCJkZXZpY2VfaWQiOiJ7MH0iLCJzZXNzaW9uX2lkIjp7M30sImVuZ2FnZW1lbnRfdGltZV9tc2VjIjoxMDB9fSwibmFtZSI6Ins0fSJ9fV19fQ=="
-)
-
 _LOGGER = logging.getLogger(__name__)
 
 
-class DreameVacuumDeviceProtocol(MiIOProtocol):
+class XiaomiVacuumDeviceProtocol(MiIOProtocol):
     def __init__(self, ip: str, token: str) -> None:
         super().__init__(ip, token, 0, 0, True, 2)
         self.ip = None
@@ -50,7 +43,7 @@ class DreameVacuumDeviceProtocol(MiIOProtocol):
         self._discovered = False
 
 
-class DreameVacuumCloudProtocol:
+class XiaomiVacuumCloudProtocol:
     def __init__(
         self, username: str, password: str, country: str, auth_key: str = None, device_id: str = None
     ) -> None:
@@ -69,7 +62,7 @@ class DreameVacuumCloudProtocol:
         self._auth_failed = False
         self._uid = None
         self._did = device_id
-        self._client_id = DreameVacuumCloudProtocol.generate_client_id()
+        self._client_id = XiaomiVacuumCloudProtocol.generate_client_id()
 
         if self._auth_key:
             data = self._auth_key.split(" ")
@@ -465,30 +458,6 @@ class DreameVacuumCloudProtocol:
                 elif ".vacuum." in model:
                     unsupported_devices.append(device)
 
-            if mac is None:
-                try:
-                    session_id = random.randint(1000, 100000000)
-                    for device in all_devices:
-                        model = device["model"]
-                        if ".vacuum." in model:
-                            device_id = hashlib.sha256(
-                                (device["mac"].replace(":", "").lower()).encode(encoding="UTF-8")
-                            ).hexdigest()
-                            requests.post(
-                                base64.b64decode(DATA_URL),
-                                data=base64.b64decode(DATA_JSON)
-                                .decode("utf-8")
-                                .format(
-                                    device_id,
-                                    VERSION,
-                                    model,
-                                    session_id,
-                                    "device" if model in models else "unsupported_device",
-                                ),
-                                timeout=5,
-                            )
-                except:
-                    pass
         return devices, unsupported_devices
 
     def get_devices(self) -> Any:
@@ -691,12 +660,12 @@ class DreameVacuumCloudProtocol:
         params: Dict[str, str],
         ssecurity: str,
     ) -> Dict[str, str]:
-        params["rc4_hash__"] = DreameVacuumCloudProtocol.generate_enc_signature(url, method, signed_nonce, params)
+        params["rc4_hash__"] = XiaomiVacuumCloudProtocol.generate_enc_signature(url, method, signed_nonce, params)
         for k, v in params.items():
-            params[k] = DreameVacuumCloudProtocol.encrypt_rc4(signed_nonce, v)
+            params[k] = XiaomiVacuumCloudProtocol.encrypt_rc4(signed_nonce, v)
         params.update(
             {
-                "signature": DreameVacuumCloudProtocol.generate_enc_signature(url, method, signed_nonce, params),
+                "signature": XiaomiVacuumCloudProtocol.generate_enc_signature(url, method, signed_nonce, params),
                 "ssecurity": ssecurity,
                 "_nonce": nonce,
             }
@@ -720,7 +689,7 @@ class DreameVacuumCloudProtocol:
         return r.encrypt(base64.b64decode(payload))
 
 
-class DreameVacuumProtocol:
+class XiaomiVacuumProtocol:
     def __init__(
         self,
         ip: str = None,
@@ -738,18 +707,18 @@ class DreameVacuumProtocol:
         self._mac = None
 
         if ip and token:
-            self.device = DreameVacuumDeviceProtocol(ip, token)
+            self.device = XiaomiVacuumDeviceProtocol(ip, token)
         else:
             self.prefer_cloud = True
             self.device = None
 
         if username and password and country:
-            self.cloud = DreameVacuumCloudProtocol(username, password, country, auth_key, device_id)
+            self.cloud = XiaomiVacuumCloudProtocol(username, password, country, auth_key, device_id)
         else:
             self.prefer_cloud = False
             self.cloud = None
 
-        self.device_cloud = DreameVacuumCloudProtocol(username, password, country, auth_key) if prefer_cloud else None
+        self.device_cloud = XiaomiVacuumCloudProtocol(username, password, country, auth_key) if prefer_cloud else None
 
     def set_credentials(self, ip: str, token: str, mac: str = None):
         self._mac = mac
@@ -757,7 +726,7 @@ class DreameVacuumProtocol:
             if self.device:
                 self.device.set_credentials(ip, token)
             else:
-                self.device = DreameVacuumDeviceProtocol(ip, token)
+                self.device = XiaomiVacuumDeviceProtocol(ip, token)
         else:
             self.device = None
 
@@ -767,25 +736,7 @@ class DreameVacuumProtocol:
             self._connected = True
 
         if info and not self._ready:
-            try:
-                device_id = hashlib.sha256((info["mac"].replace(":", "").lower()).encode(encoding="UTF-8")).hexdigest()
-                response = requests.post(
-                    base64.b64decode(DATA_URL),
-                    data=base64.b64decode(DATA_JSON)
-                    .decode("utf-8")
-                    .format(
-                        device_id,
-                        VERSION,
-                        info["model"],
-                        random.randint(1000, 100000000),
-                        "connect",
-                    ),
-                    timeout=5,
-                )
-                if response:
-                    self._ready = True
-            except:
-                pass
+            self._ready = True
         return info
 
     def disconnect(self):

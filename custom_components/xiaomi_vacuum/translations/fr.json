@@ -72,7 +72,7 @@
         }
       },
       "reauth_confirm": {
-        "description": "L'intégration Dreame Vacuum a besoin de reconnecter votre compte afin de mettre à jour les jetons ou d'ajouter les informations d'identification manquantes.",
+        "description": "L'intégration Xiaomi Vacuum a besoin de reconnecter votre compte afin de mettre à jour les jetons ou d'ajouter les informations d'identification manquantes.",
         "title": "Reconnexion à l'intégration"
       }
     }

@@ -11,12 +11,12 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.exceptions import HomeAssistantError
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
 from .const import DOMAIN, LOGGER, ATTR_VALUE
-from .dreame import (
-    DreameVacuumDevice,
-    DreameVacuumProperty,
-    DreameVacuumAction,
+from .xiaomi import (
+    XiaomiVacuumDevice,
+    XiaomiVacuumProperty,
+    XiaomiVacuumAction,
     DeviceException,
     DeviceUpdateFailedException,
     InvalidActionException,
@@ -29,12 +29,12 @@ from .dreame import (
 
 
 @dataclass
-class DreameVacuumEntityDescription:
+class XiaomiVacuumEntityDescription:
     key: str = None
     name: str = None
     entity_category: str = None
-    property_key: DreameVacuumProperty = None
-    action_key: DreameVacuumAction = None
+    property_key: XiaomiVacuumProperty = None
+    action_key: XiaomiVacuumAction = None
     exists_fn: Callable[[object, object], bool] = lambda description, device: bool(
         (description.action_key is not None and description.action_key in device.action_mapping)
         or description.property_key is None
@@ -47,15 +47,15 @@ class DreameVacuumEntityDescription:
     attrs_fn: Callable[[object, Dict]] = None
 
 
-class DreameVacuumEntity(CoordinatorEntity[DreameVacuumDataUpdateCoordinator]):
-    """Defines a base Dreame Vacuum entity."""
+class XiaomiVacuumEntity(CoordinatorEntity[XiaomiVacuumDataUpdateCoordinator]):
+    """Defines a base Xiaomi Vacuum entity."""
 
     _attr_has_entity_name = True
   
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
-        description: DreameVacuumEntityDescription = None,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
+        description: XiaomiVacuumEntityDescription = None,
     ) -> None:
         if description is not None:
             if description.key is None:
@@ -121,7 +121,7 @@ class DreameVacuumEntity(CoordinatorEntity[DreameVacuumDataUpdateCoordinator]):
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Return device information about this Dreame Vacuum device."""
+        """Return device information about this Xiaomi Vacuum device."""
         return DeviceInfo(
             connections={(CONNECTION_NETWORK_MAC, self.device.mac)},
             identifiers={(DOMAIN, self.device.mac)},
@@ -164,5 +164,5 @@ class DreameVacuumEntity(CoordinatorEntity[DreameVacuumDataUpdateCoordinator]):
         return attrs
 
     @property
-    def device(self) -> DreameVacuumDevice:
+    def device(self) -> XiaomiVacuumDevice:
         return self.coordinator.device

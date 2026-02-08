@@ -355,7 +355,7 @@ vacuum_reset_consumable:
 select_select_previous:
   target:
     entity:
-      integration: dreame_vacuum
+      integration: xiaomi_vacuum
       domain: select
   fields:
     cycle:
@@ -366,19 +366,19 @@ select_select_previous:
 select_select_first:
   target:
     entity:
-      integration: dreame_vacuum
+      integration: xiaomi_vacuum
       domain: select
 
 select_select_last:
   target:
     entity:
-      integration: dreame_vacuum
+      integration: xiaomi_vacuum
       domain: select
 
 select_select_next:
   target:
     entity:
-      integration: dreame_vacuum
+      integration: xiaomi_vacuum
       domain: select
   fields:
     cycle:

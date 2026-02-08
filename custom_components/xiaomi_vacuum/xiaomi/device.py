@@ -4,7 +4,6 @@ import time
 import json
 import re
 import copy
-import zlib
 import base64
 from datetime import datetime
 from random import randrange
@@ -14,28 +13,29 @@ from typing import Any, Optional
 from .types import (
     PIID,
     DIID,
-    DreameVacuumProperty,
-    DreameVacuumPropertyMapping,
-    DreameVacuumAction,
-    DreameVacuumActionMapping,
-    DreameVacuumChargingStatus,
-    DreameVacuumTaskStatus,
-    DreameVacuumState,
-    DreameVacuumWaterTank,
-    DreameVacuumCarpetSensitivity,
-    DreameVacuumStatus,
-    DreameVacuumErrorCode,
-    DreameVacuumRelocationStatus,
-    DreameVacuumDustCollection,
-    DreameVacuumAutoEmptyStatus,
-    DreameVacuumSelfWashBaseStatus,
-    DreameVacuumSuctionLevel,
-    DreameVacuumWaterVolume,
-    DreameVacuumMopPadHumidity,
-    DreameVacuumCleaningMode,
-    DreameVacuumSelfCleanArea,
-    DreameVacuumMopWashLevel,
-    DreameVacuumMoppingType,
+    XIAOMI_MODEL_MAPPINGS,
+    XiaomiVacuumProperty,
+    XiaomiVacuumPropertyMapping,
+    XiaomiVacuumAction,
+    XiaomiVacuumActionMapping,
+    XiaomiVacuumChargingStatus,
+    XiaomiVacuumTaskStatus,
+    XiaomiVacuumState,
+    XiaomiVacuumWaterTank,
+    XiaomiVacuumCarpetSensitivity,
+    XiaomiVacuumStatus,
+    XiaomiVacuumErrorCode,
+    XiaomiVacuumRelocationStatus,
+    XiaomiVacuumDustCollection,
+    XiaomiVacuumAutoEmptyStatus,
+    XiaomiVacuumSelfWashBaseStatus,
+    XiaomiVacuumSuctionLevel,
+    XiaomiVacuumWaterVolume,
+    XiaomiVacuumMopPadHumidity,
+    XiaomiVacuumCleaningMode,
+    XiaomiVacuumSelfCleanArea,
+    XiaomiVacuumMopWashLevel,
+    XiaomiVacuumMoppingType,
     CleaningHistory,
     MapData,
     Segment,
@@ -67,7 +67,6 @@ from .const import (
     MOPPING_TYPE_TO_NAME,
     ERROR_CODE_TO_IMAGE_INDEX,
     PROPERTY_TO_NAME,
-    DEVICE_MAP_KEY,
     AI_SETTING_SWITCH,
     AI_SETTING_UPLOAD,
     AI_SETTING_PET,
@@ -104,17 +103,17 @@ from .exceptions import (
     InvalidActionException,
     InvalidValueException,
 )
-from .protocol import DreameVacuumProtocol
-from .map import DreameMapVacuumMapManager
+from .protocol import XiaomiVacuumProtocol
+from .map import XiaomiMapVacuumMapManager
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class DreameVacuumDevice:
-    """Support for Dreame Vacuum"""
+class XiaomiVacuumDevice:
+    """Support for Xiaomi Vacuum"""
 
-    property_mapping: dict[DreameVacuumProperty, dict[str, int]] = DreameVacuumPropertyMapping
-    action_mapping: dict[DreameVacuumAction, dict[str, int]] = DreameVacuumActionMapping
+    property_mapping: dict[XiaomiVacuumProperty, dict[str, int]] = XiaomiVacuumPropertyMapping
+    action_mapping: dict[XiaomiVacuumAction, dict[str, int]] = XiaomiVacuumActionMapping
 
     def __init__(
         self,
@@ -136,13 +135,13 @@ class DreameVacuumDevice:
         self.token: str = None  # Local api token
         self.host: str = None  # IP address or host name of the device
         # Dictionary for storing the current property values
-        self.data: dict[DreameVacuumProperty, Any] = {}
+        self.data: dict[XiaomiVacuumProperty, Any] = {}
         self.available: bool = False  # Last update is successful or not
         self.disconnected: bool = False
 
         self._update_running: bool = False  # Update is running
         # Previous cleaning mode for restoring it after water tank is installed or removed
-        self._previous_cleaning_mode: DreameVacuumCleaningMode = None
+        self._previous_cleaning_mode: XiaomiVacuumCleaningMode = None
         # Device do not request properties that returned -1 as result. This property used for overriding that behavior at first connection
         self._ready: bool = False
         # Last settings properties requested time
@@ -154,7 +153,7 @@ class DreameVacuumDevice:
         self._cleaning_history_update: float = 0  # Cleaning history update time
         self._update_fail_count: int = 0  # Update failed counter
         # Map Manager object. Only available when cloud connection is present
-        self._map_manager: DreameMapVacuumMapManager = None
+        self._map_manager: XiaomiMapVacuumMapManager = None
         self._update_callback = None  # External update callback for device
         self._error_callback = None  # External update failed callback
         # External update callbacks for specific device property
@@ -163,80 +162,80 @@ class DreameVacuumDevice:
         # Used for requesting consumable properties after reset action otherwise they will only requested when cleaning completed
         self._consumable_reset: bool = False
         self._remote_control: bool = False
-        self._dirty_data: dict[DreameVacuumProperty, Any] = {}
+        self._dirty_data: dict[XiaomiVacuumProperty, Any] = {}
 
         self._name = name
         self.mac = mac
         self.token = token
         self.host = host
         self.auth_failed = False
-        self.status = DreameVacuumDeviceStatus(self)
+        self.status = XiaomiVacuumDeviceStatus(self)
 
-        self.listen(self._task_status_changed, DreameVacuumProperty.TASK_STATUS)
-        self.listen(self._status_changed, DreameVacuumProperty.STATUS)
-        self.listen(self._charging_status_changed, DreameVacuumProperty.CHARGING_STATUS)
-        self.listen(self._water_tank_changed, DreameVacuumProperty.WATER_TANK)
-        self.listen(self._water_tank_changed, DreameVacuumProperty.AUTO_MOUNT_MOP)
-        self.listen(self._ai_obstacle_detection_changed, DreameVacuumProperty.AI_DETECTION)
-        self.listen(self._auto_switch_settings_changed, DreameVacuumProperty.AUTO_SWITCH_SETTINGS)
-        self.listen(self._intelligent_recognition_changed, DreameVacuumProperty.INTELLIGENT_RECOGNITION)
+        self.listen(self._task_status_changed, XiaomiVacuumProperty.TASK_STATUS)
+        self.listen(self._status_changed, XiaomiVacuumProperty.STATUS)
+        self.listen(self._charging_status_changed, XiaomiVacuumProperty.CHARGING_STATUS)
+        self.listen(self._water_tank_changed, XiaomiVacuumProperty.WATER_TANK)
+        self.listen(self._water_tank_changed, XiaomiVacuumProperty.AUTO_MOUNT_MOP)
+        self.listen(self._ai_obstacle_detection_changed, XiaomiVacuumProperty.AI_DETECTION)
+        self.listen(self._auto_switch_settings_changed, XiaomiVacuumProperty.AUTO_SWITCH_SETTINGS)
+        self.listen(self._intelligent_recognition_changed, XiaomiVacuumProperty.INTELLIGENT_RECOGNITION)
 
-        self._protocol = DreameVacuumProtocol(
+        self._protocol = XiaomiVacuumProtocol(
             self.host, self.token, username, password, country, prefer_cloud, device_id, auth_key
         )
         if self._protocol.cloud:
-            self._map_manager = DreameMapVacuumMapManager(self._protocol)
+            self._map_manager = XiaomiMapVacuumMapManager(self._protocol)
 
-            self.listen(self._map_list_changed, DreameVacuumProperty.MAP_LIST)
-            self.listen(self._recovery_map_list_changed, DreameVacuumProperty.RECOVERY_MAP_LIST)
-            self.listen(self._map_property_changed, DreameVacuumProperty.ERROR)
-            self.listen(self._map_property_changed, DreameVacuumProperty.SELF_WASH_BASE_STATUS)
-            self.listen(self._map_property_changed, DreameVacuumProperty.CUSTOMIZED_CLEANING)
+            self.listen(self._map_list_changed, XiaomiVacuumProperty.MAP_LIST)
+            self.listen(self._recovery_map_list_changed, XiaomiVacuumProperty.RECOVERY_MAP_LIST)
+            self.listen(self._map_property_changed, XiaomiVacuumProperty.ERROR)
+            self.listen(self._map_property_changed, XiaomiVacuumProperty.SELF_WASH_BASE_STATUS)
+            self.listen(self._map_property_changed, XiaomiVacuumProperty.CUSTOMIZED_CLEANING)
 
             self._map_manager.listen(self._property_changed)
             self._map_manager.listen_error(self._update_failed)
 
-    def _request_properties(self, properties: list[DreameVacuumProperty] = None) -> bool:
+    def _request_properties(self, properties: list[XiaomiVacuumProperty] = None) -> bool:
         """Request properties from the device."""
         if not properties:
-            properties = [prop for prop in DreameVacuumProperty]
+            properties = [prop for prop in XiaomiVacuumProperty]
 
             # Remove write only and response only properties from default list
-            properties.remove(DreameVacuumProperty.SCHEDULE_ID)
-            properties.remove(DreameVacuumProperty.REMOTE_CONTROL)
-            properties.remove(DreameVacuumProperty.VOICE_CHANGE)
-            properties.remove(DreameVacuumProperty.VOICE_CHANGE_STATUS)
-            properties.remove(DreameVacuumProperty.MAP_RECOVERY)
-            properties.remove(DreameVacuumProperty.MAP_RECOVERY_STATUS)
-            properties.remove(DreameVacuumProperty.CLEANING_START_TIME)
-            properties.remove(DreameVacuumProperty.CLEAN_LOG_FILE_NAME)
-            properties.remove(DreameVacuumProperty.CLEANING_PROPERTIES)
-            properties.remove(DreameVacuumProperty.CLEAN_LOG_STATUS)
-            properties.remove(DreameVacuumProperty.MAP_DATA)
-            properties.remove(DreameVacuumProperty.FRAME_INFO)
-            properties.remove(DreameVacuumProperty.OBJECT_NAME)
-            properties.remove(DreameVacuumProperty.MAP_EXTEND_DATA)
-            properties.remove(DreameVacuumProperty.ROBOT_TIME)
-            properties.remove(DreameVacuumProperty.RESULT_CODE)
-            properties.remove(DreameVacuumProperty.OLD_MAP_DATA)
-            properties.remove(DreameVacuumProperty.WIFI_MAP)
-            properties.remove(DreameVacuumProperty.TAKE_PHOTO)
-            properties.remove(DreameVacuumProperty.CAMERA_LIGHT)
-            properties.remove(DreameVacuumProperty.CAMERA_BRIGHTNESS)
-            properties.remove(DreameVacuumProperty.STREAM_KEEP_ALIVE)
-            properties.remove(DreameVacuumProperty.STREAM_UPLOAD)
-            properties.remove(DreameVacuumProperty.STREAM_STATUS)
-            properties.remove(DreameVacuumProperty.STREAM_AUDIO)
-            properties.remove(DreameVacuumProperty.STREAM_RECORD)
-            properties.remove(DreameVacuumProperty.STREAM_CODE)
-            properties.remove(DreameVacuumProperty.STREAM_SET_CODE)
-            properties.remove(DreameVacuumProperty.STREAM_VERIFY_CODE)
-            properties.remove(DreameVacuumProperty.STREAM_RESET_CODE)
-            properties.remove(DreameVacuumProperty.STREAM_CRUISE_POINT)
-            properties.remove(DreameVacuumProperty.STREAM_PROPERTY)
-            properties.remove(DreameVacuumProperty.STREAM_FAULT)
-            properties.remove(DreameVacuumProperty.STREAM_TASK)
-            properties.remove(DreameVacuumProperty.STREAM_SPACE)
+            properties.remove(XiaomiVacuumProperty.SCHEDULE_ID)
+            properties.remove(XiaomiVacuumProperty.REMOTE_CONTROL)
+            properties.remove(XiaomiVacuumProperty.VOICE_CHANGE)
+            properties.remove(XiaomiVacuumProperty.VOICE_CHANGE_STATUS)
+            properties.remove(XiaomiVacuumProperty.MAP_RECOVERY)
+            properties.remove(XiaomiVacuumProperty.MAP_RECOVERY_STATUS)
+            properties.remove(XiaomiVacuumProperty.CLEANING_START_TIME)
+            properties.remove(XiaomiVacuumProperty.CLEAN_LOG_FILE_NAME)
+            properties.remove(XiaomiVacuumProperty.CLEANING_PROPERTIES)
+            properties.remove(XiaomiVacuumProperty.CLEAN_LOG_STATUS)
+            properties.remove(XiaomiVacuumProperty.MAP_DATA)
+            properties.remove(XiaomiVacuumProperty.FRAME_INFO)
+            properties.remove(XiaomiVacuumProperty.OBJECT_NAME)
+            properties.remove(XiaomiVacuumProperty.MAP_EXTEND_DATA)
+            properties.remove(XiaomiVacuumProperty.ROBOT_TIME)
+            properties.remove(XiaomiVacuumProperty.RESULT_CODE)
+            properties.remove(XiaomiVacuumProperty.OLD_MAP_DATA)
+            properties.remove(XiaomiVacuumProperty.WIFI_MAP)
+            properties.remove(XiaomiVacuumProperty.TAKE_PHOTO)
+            properties.remove(XiaomiVacuumProperty.CAMERA_LIGHT)
+            properties.remove(XiaomiVacuumProperty.CAMERA_BRIGHTNESS)
+            properties.remove(XiaomiVacuumProperty.STREAM_KEEP_ALIVE)
+            properties.remove(XiaomiVacuumProperty.STREAM_UPLOAD)
+            properties.remove(XiaomiVacuumProperty.STREAM_STATUS)
+            properties.remove(XiaomiVacuumProperty.STREAM_AUDIO)
+            properties.remove(XiaomiVacuumProperty.STREAM_RECORD)
+            properties.remove(XiaomiVacuumProperty.STREAM_CODE)
+            properties.remove(XiaomiVacuumProperty.STREAM_SET_CODE)
+            properties.remove(XiaomiVacuumProperty.STREAM_VERIFY_CODE)
+            properties.remove(XiaomiVacuumProperty.STREAM_RESET_CODE)
+            properties.remove(XiaomiVacuumProperty.STREAM_CRUISE_POINT)
+            properties.remove(XiaomiVacuumProperty.STREAM_PROPERTY)
+            properties.remove(XiaomiVacuumProperty.STREAM_FAULT)
+            properties.remove(XiaomiVacuumProperty.STREAM_TASK)
+            properties.remove(XiaomiVacuumProperty.STREAM_SPACE)
 
         property_list = []
         for prop in properties:
@@ -265,7 +264,7 @@ class DreameVacuumDevice:
                     if self._dirty_data[did] != value:
                         _LOGGER.info(
                             "Property %s Value Discarded: %s <- %s",
-                            DreameVacuumProperty(did).name,
+                            XiaomiVacuumProperty(did).name,
                             self._dirty_data[did],
                             value,
                         )
@@ -275,17 +274,17 @@ class DreameVacuumDevice:
                 if self.data.get(did, None) != value:
                     # Do not call external listener when map list and recovery map list properties changed
                     if (
-                        did != DreameVacuumProperty.MAP_LIST.value
-                        and did != DreameVacuumProperty.RECOVERY_MAP_LIST.value
+                        did != XiaomiVacuumProperty.MAP_LIST.value
+                        and did != XiaomiVacuumProperty.RECOVERY_MAP_LIST.value
                     ):
                         changed = True
                     current_value = self.data.get(did)
                     if current_value is not None:
                         _LOGGER.info(
-                            "Property %s Changed: %s -> %s", DreameVacuumProperty(did).name, current_value, value
+                            "Property %s Changed: %s -> %s", XiaomiVacuumProperty(did).name, current_value, value
                         )
                     else:
-                        _LOGGER.info("Property %s Added: %s", DreameVacuumProperty(did).name, value)
+                        _LOGGER.info("Property %s Added: %s", XiaomiVacuumProperty(did).name, value)
                     self.data[did] = value
                     if did in self._property_update_callback:
                         for callback in self._property_update_callback[did]:
@@ -303,23 +302,23 @@ class DreameVacuumDevice:
                 self._property_changed()
         return changed
 
-    def _update_status(self, task_status: DreameVacuumTaskStatus, status: DreameVacuumStatus) -> None:
+    def _update_status(self, task_status: XiaomiVacuumTaskStatus, status: XiaomiVacuumStatus) -> None:
         """Update status properties on memory for map renderer to update the image before action is sent to the device."""
-        if task_status is not DreameVacuumTaskStatus.COMPLETED:
-            new_state = DreameVacuumState.SWEEPING
-            if self.status.cleaning_mode is DreameVacuumCleaningMode.MOPPING:
-                new_state = DreameVacuumState.MOPPING
-            elif self.status.cleaning_mode is DreameVacuumCleaningMode.SWEEPING_AND_MOPPING:
-                new_state = DreameVacuumState.SWEEPING_AND_MOPPING
-            self._update_property(DreameVacuumProperty.STATE, new_state.value)
+        if task_status is not XiaomiVacuumTaskStatus.COMPLETED:
+            new_state = XiaomiVacuumState.SWEEPING
+            if self.status.cleaning_mode is XiaomiVacuumCleaningMode.MOPPING:
+                new_state = XiaomiVacuumState.MOPPING
+            elif self.status.cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING:
+                new_state = XiaomiVacuumState.SWEEPING_AND_MOPPING
+            self._update_property(XiaomiVacuumProperty.STATE, new_state.value)
 
-        if status is DreameVacuumStatus.STANDBY:
-            self._update_property(DreameVacuumProperty.STATE, DreameVacuumState.IDLE.value)
+        if status is XiaomiVacuumStatus.STANDBY:
+            self._update_property(XiaomiVacuumProperty.STATE, XiaomiVacuumState.IDLE.value)
 
-        self._update_property(DreameVacuumProperty.STATUS, status.value)
-        self._update_property(DreameVacuumProperty.TASK_STATUS, task_status.value)
+        self._update_property(XiaomiVacuumProperty.STATUS, status.value)
+        self._update_property(XiaomiVacuumProperty.TASK_STATUS, task_status.value)
 
-    def _update_property(self, prop: DreameVacuumProperty, value: Any) -> Any:
+    def _update_property(self, prop: XiaomiVacuumProperty, value: Any) -> Any:
         """Update device property on memory and notify listeners."""
         if prop in self.property_mapping:
             current_value = self.get_property(prop)
@@ -345,7 +344,7 @@ class DreameVacuumDevice:
     def _map_list_changed(self, previous_map_list: Any = None) -> None:
         """Update map list object name on map manager map list property when changed"""
         if self._map_manager:
-            map_list = self.get_property(DreameVacuumProperty.MAP_LIST)
+            map_list = self.get_property(XiaomiVacuumProperty.MAP_LIST)
             if map_list and map_list != "":
                 try:
                     map_list = json.loads(map_list)
@@ -360,7 +359,7 @@ class DreameVacuumDevice:
     def _recovery_map_list_changed(self, previous_recovery_map_list: Any = None) -> None:
         """Update recovery list object name on map manager recovery list property when changed"""
         if self._map_manager:
-            map_list = self.get_property(DreameVacuumProperty.RECOVERY_MAP_LIST)
+            map_list = self.get_property(XiaomiVacuumProperty.RECOVERY_MAP_LIST)
             if map_list and map_list != "":
                 try:
                     map_list = json.loads(map_list)
@@ -375,29 +374,29 @@ class DreameVacuumDevice:
     def _water_tank_changed(self, previous_water_tank: Any = None) -> None:
         """Update cleaning mode on device when water tank status is changed."""
         # App does not allow you to update cleaning mode when water tank or mop pad is not installed.
-        if self.get_property(DreameVacuumProperty.CLEANING_MODE) is not None:
+        if self.get_property(XiaomiVacuumProperty.CLEANING_MODE) is not None:
             new_list = CLEANING_MODE_CODE_TO_NAME.copy()
             if not self.status.auto_mount:
                 if not self.status.water_tank_or_mop_installed:
-                    new_list.pop(DreameVacuumCleaningMode.MOPPING)
-                    new_list.pop(DreameVacuumCleaningMode.SWEEPING_AND_MOPPING)
-                    if self.status.cleaning_mode != DreameVacuumCleaningMode.SWEEPING:
+                    new_list.pop(XiaomiVacuumCleaningMode.MOPPING)
+                    new_list.pop(XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING)
+                    if self.status.cleaning_mode != XiaomiVacuumCleaningMode.SWEEPING:
                         # Store current cleaning mode for future use when water tank is reinstalled
                         if not self.status.started:
                             self._previous_cleaning_mode = self.status.cleaning_mode
-                            self.set_cleaning_mode(DreameVacuumCleaningMode.SWEEPING.value)
+                            self.set_cleaning_mode(XiaomiVacuumCleaningMode.SWEEPING.value)
                 else:
                     if not self.status.mop_pad_lifting_available:
-                        new_list.pop(DreameVacuumCleaningMode.SWEEPING)
+                        new_list.pop(XiaomiVacuumCleaningMode.SWEEPING)
 
                         if not self.status.started and self.status.sweeping:
                             if (
                                 self._previous_cleaning_mode is not None
-                                and self._previous_cleaning_mode != DreameVacuumCleaningMode.SWEEPING
+                                and self._previous_cleaning_mode != XiaomiVacuumCleaningMode.SWEEPING
                             ):
                                 self.set_cleaning_mode(self._previous_cleaning_mode.value)
                             else:
-                                self.set_cleaning_mode(DreameVacuumCleaningMode.SWEEPING_AND_MOPPING.value)
+                                self.set_cleaning_mode(XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING.value)
                             # Store current cleaning mode for future use when water tank is removed
                             self._previous_cleaning_mode = self.status.cleaning_mode
 
@@ -406,27 +405,27 @@ class DreameVacuumDevice:
     def _task_status_changed(self, previous_task_status: Any = None) -> None:
         """Task status is a very important property and must be listened to trigger necessary actions when a task started or ended"""
         if previous_task_status is not None:
-            if previous_task_status in DreameVacuumTaskStatus._value2member_map_:
-                previous_task_status = DreameVacuumTaskStatus(previous_task_status)
+            if previous_task_status in XiaomiVacuumTaskStatus._value2member_map_:
+                previous_task_status = XiaomiVacuumTaskStatus(previous_task_status)
 
             task_status = self.status.task_status
-            if previous_task_status is DreameVacuumTaskStatus.COMPLETED:
+            if previous_task_status is XiaomiVacuumTaskStatus.COMPLETED:
                 # as implemented on the app
-                self._update_property(DreameVacuumProperty.CLEANING_TIME, 0)
-                self._update_property(DreameVacuumProperty.CLEANED_AREA, 0)
+                self._update_property(XiaomiVacuumProperty.CLEANING_TIME, 0)
+                self._update_property(XiaomiVacuumProperty.CLEANED_AREA, 0)
 
             if self._map_manager is not None:
                 # Update map data for renderer to update the map image according to the new task status
-                if previous_task_status is DreameVacuumTaskStatus.COMPLETED:
+                if previous_task_status is XiaomiVacuumTaskStatus.COMPLETED:
                     if (
-                        task_status is DreameVacuumTaskStatus.AUTO_CLEANING
-                        or task_status is DreameVacuumTaskStatus.ZONE_CLEANING
-                        or task_status is DreameVacuumTaskStatus.SEGMENT_CLEANING
-                        or task_status is DreameVacuumTaskStatus.SPOT_CLEANING
+                        task_status is XiaomiVacuumTaskStatus.AUTO_CLEANING
+                        or task_status is XiaomiVacuumTaskStatus.ZONE_CLEANING
+                        or task_status is XiaomiVacuumTaskStatus.SEGMENT_CLEANING
+                        or task_status is XiaomiVacuumTaskStatus.SPOT_CLEANING
                     ):
                         # Clear path on current map on cleaning start as implemented on the app
                         self._map_manager.editor.clear_path()
-                    elif task_status is DreameVacuumTaskStatus.FAST_MAPPING:
+                    elif task_status is XiaomiVacuumTaskStatus.FAST_MAPPING:
                         # Clear current map on mapping start as implemented on the app
                         self._map_manager.editor.reset_map()
                     else:
@@ -434,10 +433,10 @@ class DreameVacuumDevice:
                 else:
                     self._map_manager.editor.refresh_map()
 
-            if task_status is DreameVacuumTaskStatus.COMPLETED:
-                if previous_task_status is DreameVacuumTaskStatus.FAST_MAPPING:
+            if task_status is XiaomiVacuumTaskStatus.COMPLETED:
+                if previous_task_status is XiaomiVacuumTaskStatus.FAST_MAPPING:
                     # as implemented on the app
-                    self._update_property(DreameVacuumProperty.CLEANING_TIME, 0)
+                    self._update_property(XiaomiVacuumProperty.CLEANING_TIME, 0)
                     self.cleanup_completed = False
                     if self._map_manager is not None:
                         # Mapping is completed, get the new map list from cloud
@@ -449,38 +448,38 @@ class DreameVacuumDevice:
                 self.cleanup_completed = None if self.status.fast_mapping else False
 
             if (
-                task_status is DreameVacuumTaskStatus.COMPLETED
-                or previous_task_status is DreameVacuumTaskStatus.COMPLETED
+                task_status is XiaomiVacuumTaskStatus.COMPLETED
+                or previous_task_status is XiaomiVacuumTaskStatus.COMPLETED
             ):
                 # Get properties that only changes when task status is changed
                 properties = [
-                    DreameVacuumProperty.MAIN_BRUSH_TIME_LEFT,
-                    DreameVacuumProperty.MAIN_BRUSH_LEFT,
-                    DreameVacuumProperty.SIDE_BRUSH_TIME_LEFT,
-                    DreameVacuumProperty.SIDE_BRUSH_LEFT,
-                    DreameVacuumProperty.FILTER_LEFT,
-                    DreameVacuumProperty.FILTER_TIME_LEFT,
-                    DreameVacuumProperty.SENSOR_DIRTY_LEFT,
-                    DreameVacuumProperty.SENSOR_DIRTY_TIME_LEFT,
-                    DreameVacuumProperty.SECONDARY_FILTER_LEFT,
-                    DreameVacuumProperty.SECONDARY_FILTER_TIME_LEFT,
-                    DreameVacuumProperty.MOP_PAD_LEFT,
-                    DreameVacuumProperty.MOP_PAD_TIME_LEFT,
-                    DreameVacuumProperty.SILVER_ION_TIME_LEFT,
-                    DreameVacuumProperty.SILVER_ION_LEFT,
-                    DreameVacuumProperty.DETERGENT_TIME_LEFT,
-                    DreameVacuumProperty.DETERGENT_LEFT,
-                    DreameVacuumProperty.TOTAL_CLEANING_TIME,
-                    DreameVacuumProperty.CLEANING_COUNT,
-                    DreameVacuumProperty.TOTAL_CLEANED_AREA,
-                    DreameVacuumProperty.FIRST_CLEANING_DATE,
-                    DreameVacuumProperty.SCHEDULE,
-                    DreameVacuumProperty.SCHEDULE_CANCEL_REASON,
-                    DreameVacuumProperty.CRUISE_SCHEDULE,
+                    XiaomiVacuumProperty.MAIN_BRUSH_TIME_LEFT,
+                    XiaomiVacuumProperty.MAIN_BRUSH_LEFT,
+                    XiaomiVacuumProperty.SIDE_BRUSH_TIME_LEFT,
+                    XiaomiVacuumProperty.SIDE_BRUSH_LEFT,
+                    XiaomiVacuumProperty.FILTER_LEFT,
+                    XiaomiVacuumProperty.FILTER_TIME_LEFT,
+                    XiaomiVacuumProperty.SENSOR_DIRTY_LEFT,
+                    XiaomiVacuumProperty.SENSOR_DIRTY_TIME_LEFT,
+                    XiaomiVacuumProperty.SECONDARY_FILTER_LEFT,
+                    XiaomiVacuumProperty.SECONDARY_FILTER_TIME_LEFT,
+                    XiaomiVacuumProperty.MOP_PAD_LEFT,
+                    XiaomiVacuumProperty.MOP_PAD_TIME_LEFT,
+                    XiaomiVacuumProperty.SILVER_ION_TIME_LEFT,
+                    XiaomiVacuumProperty.SILVER_ION_LEFT,
+                    XiaomiVacuumProperty.DETERGENT_TIME_LEFT,
+                    XiaomiVacuumProperty.DETERGENT_LEFT,
+                    XiaomiVacuumProperty.TOTAL_CLEANING_TIME,
+                    XiaomiVacuumProperty.CLEANING_COUNT,
+                    XiaomiVacuumProperty.TOTAL_CLEANED_AREA,
+                    XiaomiVacuumProperty.FIRST_CLEANING_DATE,
+                    XiaomiVacuumProperty.SCHEDULE,
+                    XiaomiVacuumProperty.SCHEDULE_CANCEL_REASON,
+                    XiaomiVacuumProperty.CRUISE_SCHEDULE,
                 ]
 
                 if self._map_manager is not None:
-                    properties.extend([DreameVacuumProperty.MAP_LIST, DreameVacuumProperty.RECOVERY_MAP_LIST])
+                    properties.extend([XiaomiVacuumProperty.MAP_LIST, XiaomiVacuumProperty.RECOVERY_MAP_LIST])
                     self._last_map_list_request = time.time()
 
                 try:
@@ -490,18 +489,18 @@ class DreameVacuumDevice:
 
     def _status_changed(self, previous_status: Any = None) -> None:
         if previous_status is not None:
-            if previous_status in DreameVacuumStatus._value2member_map_:
-                previous_status = DreameVacuumStatus(previous_status)
+            if previous_status in XiaomiVacuumStatus._value2member_map_:
+                previous_status = XiaomiVacuumStatus(previous_status)
 
             status = self.status.status
             if (
                 self._remote_control
-                and status is not DreameVacuumStatus.REMOTE_CONTROL
-                and previous_status is not DreameVacuumStatus.REMOTE_CONTROL
+                and status is not XiaomiVacuumStatus.REMOTE_CONTROL
+                and previous_status is not XiaomiVacuumStatus.REMOTE_CONTROL
             ):
                 self._remote_control = False
 
-            if status is DreameVacuumStatus.CHARGING and previous_status is DreameVacuumStatus.BACK_HOME:
+            if status is XiaomiVacuumStatus.CHARGING and previous_status is XiaomiVacuumStatus.BACK_HOME:
                 self._cleaning_history_update = time.time()
 
         self._map_property_changed()
@@ -512,7 +511,7 @@ class DreameVacuumDevice:
 
     def _ai_obstacle_detection_changed(self, previous_ai_obstacle_detection: Any = None) -> None:
         """AI Detection property returns multiple values as json or int this function parses and sets the sub properties to memory"""
-        value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+        value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
         if isinstance(value, str):
             settings = json.loads(value)
 
@@ -542,7 +541,7 @@ class DreameVacuumDevice:
         )
 
     def _auto_switch_settings_changed(self, previous_auto_switch_settings: Any = None) -> None:
-        value = self.get_property(DreameVacuumProperty.AUTO_SWITCH_SETTINGS)
+        value = self.get_property(XiaomiVacuumProperty.AUTO_SWITCH_SETTINGS)
         if isinstance(value, str) and len(value) > 2:
             try:
                 settings = json.loads(value)
@@ -572,7 +571,7 @@ class DreameVacuumDevice:
 
     def _intelligent_recognition_changed(self, previous_intelligent_recognition: Any = None) -> None:
         if not self.status.auto_switch_settings_available:
-            self.status.auto_drying = self.get_property(DreameVacuumProperty.INTELLIGENT_RECOGNITION)
+            self.status.auto_drying = self.get_property(XiaomiVacuumProperty.INTELLIGENT_RECOGNITION)
 
     def _request_cleaning_history(self) -> None:
         """Get and parse the cleaning history from cloud event data and set it to memory"""
@@ -584,7 +583,7 @@ class DreameVacuumDevice:
                 or self.status._cleaning_history is None
                 or (
                     time.time() - self._cleaning_history_update >= 5
-                    and self.status.task_status is DreameVacuumTaskStatus.COMPLETED
+                    and self.status.task_status is XiaomiVacuumTaskStatus.COMPLETED
                 )
             )
         ):
@@ -594,9 +593,9 @@ class DreameVacuumDevice:
             try:
                 # Limit the results
                 start = None
-                total = self.get_property(DreameVacuumProperty.CLEANING_COUNT)
+                total = self.get_property(XiaomiVacuumProperty.CLEANING_COUNT)
                 if total > 0:
-                    start = self.get_property(DreameVacuumProperty.FIRST_CLEANING_DATE)
+                    start = self.get_property(XiaomiVacuumProperty.FIRST_CLEANING_DATE)
 
                 if start is None:
                     start = int(time.time())
@@ -608,7 +607,7 @@ class DreameVacuumDevice:
 
                 # Cleaning history is generated from events of status property that has been sent to cloud by the device when it changed
                 result = self._protocol.cloud.get_device_event(
-                    DIID(DreameVacuumProperty.STATUS, self.property_mapping), limit, start
+                    DIID(XiaomiVacuumProperty.STATUS, self.property_mapping), limit, start
                 )
                 if result:
                     cleaning_history = []
@@ -621,31 +620,31 @@ class DreameVacuumDevice:
                         for history_data_item in history_data:
                             piid = history_data_item["piid"]
                             value = history_data_item["value"]
-                            if piid == PIID(DreameVacuumProperty.STATUS, self.property_mapping):
-                                if value in DreameVacuumStatus._value2member_map_:
-                                    history.status = DreameVacuumStatus(value)
+                            if piid == PIID(XiaomiVacuumProperty.STATUS, self.property_mapping):
+                                if value in XiaomiVacuumStatus._value2member_map_:
+                                    history.status = XiaomiVacuumStatus(value)
                                 else:
-                                    history.status = DreameVacuumStatus.UNKNOWN
-                            elif piid == PIID(DreameVacuumProperty.CLEANING_TIME, self.property_mapping):
+                                    history.status = XiaomiVacuumStatus.UNKNOWN
+                            elif piid == PIID(XiaomiVacuumProperty.CLEANING_TIME, self.property_mapping):
                                 history.cleaning_time = value
-                            elif piid == PIID(DreameVacuumProperty.CLEANED_AREA, self.property_mapping):
+                            elif piid == PIID(XiaomiVacuumProperty.CLEANED_AREA, self.property_mapping):
                                 history.cleaned_area = value
-                            elif piid == PIID(DreameVacuumProperty.SUCTION_LEVEL, self.property_mapping):
-                                if value in DreameVacuumSuctionLevel._value2member_map_:
-                                    history.suction_level = DreameVacuumSuctionLevel(value)
+                            elif piid == PIID(XiaomiVacuumProperty.SUCTION_LEVEL, self.property_mapping):
+                                if value in XiaomiVacuumSuctionLevel._value2member_map_:
+                                    history.suction_level = XiaomiVacuumSuctionLevel(value)
                                 else:
-                                    history.suction_level = DreameVacuumSuctionLevel.UNKNOWN
-                            elif piid == PIID(DreameVacuumProperty.CLEANING_START_TIME, self.property_mapping):
+                                    history.suction_level = XiaomiVacuumSuctionLevel.UNKNOWN
+                            elif piid == PIID(XiaomiVacuumProperty.CLEANING_START_TIME, self.property_mapping):
                                 history.date = datetime.fromtimestamp(value)
-                            elif piid == PIID(DreameVacuumProperty.CLEAN_LOG_FILE_NAME, self.property_mapping):
+                            elif piid == PIID(XiaomiVacuumProperty.CLEAN_LOG_FILE_NAME, self.property_mapping):
                                 history.file_name = value
-                            elif piid == PIID(DreameVacuumProperty.CLEAN_LOG_STATUS, self.property_mapping):
+                            elif piid == PIID(XiaomiVacuumProperty.CLEAN_LOG_STATUS, self.property_mapping):
                                 history.completed = bool(value)
-                            elif piid == PIID(DreameVacuumProperty.WATER_TANK, self.property_mapping):
-                                if value in DreameVacuumWaterTank._value2member_map_:
-                                    history.water_tank = DreameVacuumWaterTank(value)
+                            elif piid == PIID(XiaomiVacuumProperty.WATER_TANK, self.property_mapping):
+                                if value in XiaomiVacuumWaterTank._value2member_map_:
+                                    history.water_tank = XiaomiVacuumWaterTank(value)
                                 else:
-                                    history.water_tank = DreameVacuumWaterTank.UNKNOWN
+                                    history.water_tank = XiaomiVacuumWaterTank.UNKNOWN
 
                         if history_size > 0 and cleaning_history[-1].date == history.date:
                             continue
@@ -723,10 +722,19 @@ class DreameVacuumDevice:
     def connect_device(self) -> None:
         """Connect to the device api."""
         _LOGGER.info("Connecting to device")
-        self.info = DreameVacuumDeviceInfo(self._protocol.connect())
+        self.info = XiaomiVacuumDeviceInfo(self._protocol.connect())
         if self.mac is None:
             self.mac = self.info.mac_address
         _LOGGER.info("Connected to device: %s %s", self.info.model, self.info.firmware_version)
+
+        if self.info.model in XIAOMI_MODEL_MAPPINGS:
+            prop_map, action_map = XIAOMI_MODEL_MAPPINGS[self.info.model]
+            self.property_mapping = prop_map
+            self.action_mapping = action_map
+            _LOGGER.info("Using custom mappings for %s", self.info.model)
+            if self._map_manager:
+                _LOGGER.warning("Map rendering not available for %s — encryption key unknown", self.info.model)
+                self._map_manager = None
 
         self._last_settings_request = time.time()
         self._last_map_list_request = self._last_settings_request
@@ -736,14 +744,6 @@ class DreameVacuumDevice:
 
         if self.device_connected and self._protocol.cloud is not None and (not self._ready or not self.available):
             if self._map_manager:
-                model = self.info.model.split(".")
-                if len(model) == 3:
-                    key = json.loads(zlib.decompress(base64.b64decode(DEVICE_MAP_KEY), zlib.MAX_WBITS | 32)).get(
-                        model[2]
-                    )
-                    if key:
-                        self._map_manager.set_aes_iv(key)
-
                 if not self.status.lidar_navigation:
                     self._map_manager.set_vslam_map()
                 self._map_manager.set_update_interval(self._map_update_interval)
@@ -805,7 +805,7 @@ class DreameVacuumDevice:
             self._map_manager.schedule_update(-1)
         self._property_changed()
 
-    def listen(self, callback, property: DreameVacuumProperty = None) -> None:
+    def listen(self, callback, property: XiaomiVacuumProperty = None) -> None:
         """Set callback functions for external listeners"""
         if callback is None:
             self._update_callback = None
@@ -837,13 +837,13 @@ class DreameVacuumDevice:
             self._update_timer = Timer(wait, self._update_task)
             self._update_timer.start()
 
-    def get_property(self, prop: DreameVacuumProperty) -> Any:
+    def get_property(self, prop: XiaomiVacuumProperty) -> Any:
         """Get a device property from memory"""
         if prop is not None and prop.value in self.data:
             return self.data[prop.value]
         return None
 
-    def set_property(self, prop: DreameVacuumProperty, value: Any) -> bool:
+    def set_property(self, prop: XiaomiVacuumProperty, value: Any) -> bool:
         """Sets property value using the existing property mapping and notify listeners
         Property must be set on memory first and notify its listeners because device does not return new value immediately.
         """
@@ -1003,46 +1003,46 @@ class DreameVacuumDevice:
 
         # Read-only properties
         properties = [
-            DreameVacuumProperty.STATE,
-            DreameVacuumProperty.ERROR,
-            DreameVacuumProperty.BATTERY_LEVEL,
-            DreameVacuumProperty.CHARGING_STATUS,
-            DreameVacuumProperty.STATUS,
-            DreameVacuumProperty.WATER_TANK,
-            DreameVacuumProperty.TASK_STATUS,
-            DreameVacuumProperty.WARN_STATUS,
-            DreameVacuumProperty.RELOCATION_STATUS,
-            DreameVacuumProperty.SELF_WASH_BASE_STATUS,
-            DreameVacuumProperty.DUST_COLLECTION,
-            DreameVacuumProperty.AUTO_EMPTY_STATUS,
-            DreameVacuumProperty.CLEANING_PAUSED,
-            DreameVacuumProperty.CLEANING_CANCEL,
-            DreameVacuumProperty.SCHEDULED_CLEAN,
-            DreameVacuumProperty.MOP_IN_STATION,
-            DreameVacuumProperty.MOP_PAD_INSTALLED,
-            DreameVacuumProperty.NO_WATER_WARNING,
-            # DreameVacuumProperty.SAVE_WATER_TIPS,
+            XiaomiVacuumProperty.STATE,
+            XiaomiVacuumProperty.ERROR,
+            XiaomiVacuumProperty.BATTERY_LEVEL,
+            XiaomiVacuumProperty.CHARGING_STATUS,
+            XiaomiVacuumProperty.STATUS,
+            XiaomiVacuumProperty.WATER_TANK,
+            XiaomiVacuumProperty.TASK_STATUS,
+            XiaomiVacuumProperty.WARN_STATUS,
+            XiaomiVacuumProperty.RELOCATION_STATUS,
+            XiaomiVacuumProperty.SELF_WASH_BASE_STATUS,
+            XiaomiVacuumProperty.DUST_COLLECTION,
+            XiaomiVacuumProperty.AUTO_EMPTY_STATUS,
+            XiaomiVacuumProperty.CLEANING_PAUSED,
+            XiaomiVacuumProperty.CLEANING_CANCEL,
+            XiaomiVacuumProperty.SCHEDULED_CLEAN,
+            XiaomiVacuumProperty.MOP_IN_STATION,
+            XiaomiVacuumProperty.MOP_PAD_INSTALLED,
+            XiaomiVacuumProperty.NO_WATER_WARNING,
+            # XiaomiVacuumProperty.SAVE_WATER_TIPS,
         ]
 
         now = time.time()
         if self.status.active:
             # Only changed when robot is active
-            properties.extend([DreameVacuumProperty.CLEANED_AREA, DreameVacuumProperty.CLEANING_TIME])
+            properties.extend([XiaomiVacuumProperty.CLEANED_AREA, XiaomiVacuumProperty.CLEANING_TIME])
 
         if self._consumable_reset:
             # Consumable properties
             properties.extend(
                 [
-                    DreameVacuumProperty.MAIN_BRUSH_TIME_LEFT,
-                    DreameVacuumProperty.MAIN_BRUSH_LEFT,
-                    DreameVacuumProperty.SIDE_BRUSH_TIME_LEFT,
-                    DreameVacuumProperty.SIDE_BRUSH_LEFT,
-                    DreameVacuumProperty.FILTER_LEFT,
-                    DreameVacuumProperty.FILTER_TIME_LEFT,
-                    DreameVacuumProperty.SENSOR_DIRTY_LEFT,
-                    DreameVacuumProperty.SENSOR_DIRTY_TIME_LEFT,
-                    DreameVacuumProperty.MOP_PAD_LEFT,
-                    DreameVacuumProperty.MOP_PAD_TIME_LEFT,
+                    XiaomiVacuumProperty.MAIN_BRUSH_TIME_LEFT,
+                    XiaomiVacuumProperty.MAIN_BRUSH_LEFT,
+                    XiaomiVacuumProperty.SIDE_BRUSH_TIME_LEFT,
+                    XiaomiVacuumProperty.SIDE_BRUSH_LEFT,
+                    XiaomiVacuumProperty.FILTER_LEFT,
+                    XiaomiVacuumProperty.FILTER_TIME_LEFT,
+                    XiaomiVacuumProperty.SENSOR_DIRTY_LEFT,
+                    XiaomiVacuumProperty.SENSOR_DIRTY_TIME_LEFT,
+                    XiaomiVacuumProperty.MOP_PAD_LEFT,
+                    XiaomiVacuumProperty.MOP_PAD_TIME_LEFT,
                 ]
             )
 
@@ -1052,48 +1052,48 @@ class DreameVacuumDevice:
             # Read/Write properties
             properties.extend(
                 [
-                    DreameVacuumProperty.SUCTION_LEVEL,
-                    DreameVacuumProperty.RESUME_CLEANING,
-                    DreameVacuumProperty.CARPET_BOOST,
-                    DreameVacuumProperty.MOP_CLEANING_REMAINDER,
-                    DreameVacuumProperty.OBSTACLE_AVOIDANCE,
-                    DreameVacuumProperty.AI_DETECTION,
-                    DreameVacuumProperty.DRYING_TIME,
-                    DreameVacuumProperty.AUTO_ADD_DETERGENT,
-                    DreameVacuumProperty.CARPET_AVOIDANCE,
-                    DreameVacuumProperty.CLEANING_MODE,
-                    DreameVacuumProperty.WATER_ELECTROLYSIS,
-                    DreameVacuumProperty.INTELLIGENT_RECOGNITION,
-                    DreameVacuumProperty.AUTO_WATER_REFILLING,
-                    DreameVacuumProperty.AUTO_MOUNT_MOP,
-                    DreameVacuumProperty.MOP_WASH_LEVEL,
-                    DreameVacuumProperty.CUSTOMIZED_CLEANING,
-                    DreameVacuumProperty.CHILD_LOCK,
-                    DreameVacuumProperty.CARPET_SENSITIVITY,
-                    DreameVacuumProperty.TIGHT_MOPPING,
-                    DreameVacuumProperty.CARPET_RECOGNITION,
-                    DreameVacuumProperty.SELF_CLEAN,
-                    DreameVacuumProperty.DND,
-                    DreameVacuumProperty.DND_START,
-                    DreameVacuumProperty.DND_END,
-                    DreameVacuumProperty.DND_TASK,
-                    DreameVacuumProperty.MULTI_FLOOR_MAP,
-                    DreameVacuumProperty.VOLUME,
-                    DreameVacuumProperty.AUTO_DUST_COLLECTING,
-                    DreameVacuumProperty.AUTO_EMPTY_FREQUENCY,
-                    DreameVacuumProperty.VOICE_PACKET_ID,
-                    DreameVacuumProperty.TIMEZONE,
-                    DreameVacuumProperty.MAP_SAVING,
-                    DreameVacuumProperty.AUTO_SWITCH_SETTINGS,
-                    DreameVacuumProperty.QUICK_COMMAND,
+                    XiaomiVacuumProperty.SUCTION_LEVEL,
+                    XiaomiVacuumProperty.RESUME_CLEANING,
+                    XiaomiVacuumProperty.CARPET_BOOST,
+                    XiaomiVacuumProperty.MOP_CLEANING_REMAINDER,
+                    XiaomiVacuumProperty.OBSTACLE_AVOIDANCE,
+                    XiaomiVacuumProperty.AI_DETECTION,
+                    XiaomiVacuumProperty.DRYING_TIME,
+                    XiaomiVacuumProperty.AUTO_ADD_DETERGENT,
+                    XiaomiVacuumProperty.CARPET_AVOIDANCE,
+                    XiaomiVacuumProperty.CLEANING_MODE,
+                    XiaomiVacuumProperty.WATER_ELECTROLYSIS,
+                    XiaomiVacuumProperty.INTELLIGENT_RECOGNITION,
+                    XiaomiVacuumProperty.AUTO_WATER_REFILLING,
+                    XiaomiVacuumProperty.AUTO_MOUNT_MOP,
+                    XiaomiVacuumProperty.MOP_WASH_LEVEL,
+                    XiaomiVacuumProperty.CUSTOMIZED_CLEANING,
+                    XiaomiVacuumProperty.CHILD_LOCK,
+                    XiaomiVacuumProperty.CARPET_SENSITIVITY,
+                    XiaomiVacuumProperty.TIGHT_MOPPING,
+                    XiaomiVacuumProperty.CARPET_RECOGNITION,
+                    XiaomiVacuumProperty.SELF_CLEAN,
+                    XiaomiVacuumProperty.DND,
+                    XiaomiVacuumProperty.DND_START,
+                    XiaomiVacuumProperty.DND_END,
+                    XiaomiVacuumProperty.DND_TASK,
+                    XiaomiVacuumProperty.MULTI_FLOOR_MAP,
+                    XiaomiVacuumProperty.VOLUME,
+                    XiaomiVacuumProperty.AUTO_DUST_COLLECTING,
+                    XiaomiVacuumProperty.AUTO_EMPTY_FREQUENCY,
+                    XiaomiVacuumProperty.VOICE_PACKET_ID,
+                    XiaomiVacuumProperty.TIMEZONE,
+                    XiaomiVacuumProperty.MAP_SAVING,
+                    XiaomiVacuumProperty.AUTO_SWITCH_SETTINGS,
+                    XiaomiVacuumProperty.QUICK_COMMAND,
                 ]
             )
 
             if not self.status.self_wash_base_available:
-                properties.append(DreameVacuumProperty.WATER_VOLUME)
+                properties.append(XiaomiVacuumProperty.WATER_VOLUME)
 
         if self._map_manager and not self.status.running and now - self._last_map_list_request > 60:
-            properties.extend([DreameVacuumProperty.MAP_LIST, DreameVacuumProperty.RECOVERY_MAP_LIST])
+            properties.extend([XiaomiVacuumProperty.MAP_LIST, XiaomiVacuumProperty.RECOVERY_MAP_LIST])
             self._last_map_list_request = time.time()
 
         try:
@@ -1114,7 +1114,7 @@ class DreameVacuumDevice:
 
         self._update_running = False
 
-    def call_action(self, action: DreameVacuumAction, parameters: dict[str, Any] = None) -> dict[str, Any] | None:
+    def call_action(self, action: XiaomiVacuumAction, parameters: dict[str, Any] = None) -> dict[str, Any] | None:
         """Call an action."""
         if action not in self.action_mapping:
             raise InvalidActionException(f"Unable to find {action} in the action mapping")
@@ -1123,42 +1123,42 @@ class DreameVacuumDevice:
         if "siid" not in mapping or "aiid" not in mapping:
             raise InvalidActionException(f"{action} is not an action (missing siid or aiid)")
 
-        if action is not DreameVacuumAction.REQUEST_MAP and action is not DreameVacuumAction.UPDATE_MAP_DATA:
+        if action is not XiaomiVacuumAction.REQUEST_MAP and action is not XiaomiVacuumAction.UPDATE_MAP_DATA:
             self.schedule_update(10)
 
         # Reset consumable on memory
-        if action is DreameVacuumAction.RESET_MAIN_BRUSH:
+        if action is XiaomiVacuumAction.RESET_MAIN_BRUSH:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.MAIN_BRUSH_LEFT, 100)
-        elif action is DreameVacuumAction.RESET_SIDE_BRUSH:
+            self._update_property(XiaomiVacuumProperty.MAIN_BRUSH_LEFT, 100)
+        elif action is XiaomiVacuumAction.RESET_SIDE_BRUSH:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.SIDE_BRUSH_LEFT, 100)
-        elif action is DreameVacuumAction.RESET_FILTER:
+            self._update_property(XiaomiVacuumProperty.SIDE_BRUSH_LEFT, 100)
+        elif action is XiaomiVacuumAction.RESET_FILTER:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.FILTER_LEFT, 100)
-        elif action is DreameVacuumAction.RESET_SENSOR:
+            self._update_property(XiaomiVacuumProperty.FILTER_LEFT, 100)
+        elif action is XiaomiVacuumAction.RESET_SENSOR:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.SENSOR_DIRTY_LEFT, 100)
-        elif action is DreameVacuumAction.RESET_SECONDARY_FILTER:
+            self._update_property(XiaomiVacuumProperty.SENSOR_DIRTY_LEFT, 100)
+        elif action is XiaomiVacuumAction.RESET_SECONDARY_FILTER:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.SECONDARY_FILTER_LEFT, 100)
-        elif action is DreameVacuumAction.RESET_MOP_PAD:
+            self._update_property(XiaomiVacuumProperty.SECONDARY_FILTER_LEFT, 100)
+        elif action is XiaomiVacuumAction.RESET_MOP_PAD:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.MOP_PAD_LEFT, 100)
-        elif action is DreameVacuumAction.RESET_SILVER_ION:
+            self._update_property(XiaomiVacuumProperty.MOP_PAD_LEFT, 100)
+        elif action is XiaomiVacuumAction.RESET_SILVER_ION:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.SILVER_ION_LEFT, 100)
-        elif action is DreameVacuumAction.RESET_DETERGENT:
+            self._update_property(XiaomiVacuumProperty.SILVER_ION_LEFT, 100)
+        elif action is XiaomiVacuumAction.RESET_DETERGENT:
             self._consumable_reset = True
-            self._update_property(DreameVacuumProperty.DETERGENT_LEFT, 100)
+            self._update_property(XiaomiVacuumProperty.DETERGENT_LEFT, 100)
 
         # Update listeners
         if (
-            action is DreameVacuumAction.START
-            or action is DreameVacuumAction.START_CUSTOM
-            or action is DreameVacuumAction.STOP
-            or action is DreameVacuumAction.CHARGE
-            or action is DreameVacuumAction.UPDATE_MAP_DATA
+            action is XiaomiVacuumAction.START
+            or action is XiaomiVacuumAction.START_CUSTOM
+            or action is XiaomiVacuumAction.STOP
+            or action is XiaomiVacuumAction.CHARGE
+            or action is XiaomiVacuumAction.UPDATE_MAP_DATA
             or self._consumable_reset
         ):
             self._property_changed()
@@ -1175,7 +1175,7 @@ class DreameVacuumDevice:
         if result:
             _LOGGER.info("Send action %s", action.name)
             self._last_change = time.time()
-            if action is not DreameVacuumAction.REQUEST_MAP and action is not DreameVacuumAction.UPDATE_MAP_DATA:
+            if action is not XiaomiVacuumAction.REQUEST_MAP and action is not XiaomiVacuumAction.UPDATE_MAP_DATA:
                 self._last_settings_request = 0
 
         # Schedule update for retrieving new properties after action sent
@@ -1199,7 +1199,7 @@ class DreameVacuumDevice:
             self.status.customized_cleaning and not (self.status.zone_cleaning or self.status.spot_cleaning)
         ):
             raise InvalidActionException("Cannot set suction level when customized cleaning is enabled")
-        return self.set_property(DreameVacuumProperty.SUCTION_LEVEL, int(suction_level))
+        return self.set_property(XiaomiVacuumProperty.SUCTION_LEVEL, int(suction_level))
 
     def set_cleaning_mode(self, cleaning_mode: int) -> bool:
         """Set cleaning mode."""
@@ -1207,7 +1207,7 @@ class DreameVacuumDevice:
             raise InvalidActionException("Cannot set cleaning mode while vacuum is running")
 
         if not self.status.auto_mount:
-            if cleaning_mode is DreameVacuumCleaningMode.SWEEPING.value:
+            if cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING.value:
                 if self.status.water_tank_or_mop_installed and not self.status.mop_pad_lifting_available:
                     if self.status.self_wash_base_available:
                         raise InvalidActionException("Cannot set sweeping while mop pads are installed")
@@ -1220,8 +1220,8 @@ class DreameVacuumDevice:
                     raise InvalidActionException("Cannot set mopping while water tank is not installed")
 
         if self.status.self_wash_base_available:
-            values = DreameVacuumDevice.split_group_value(
-                self.get_property(DreameVacuumProperty.CLEANING_MODE), self.status.mop_pad_lifting_available
+            values = XiaomiVacuumDevice.split_group_value(
+                self.get_property(XiaomiVacuumProperty.CLEANING_MODE), self.status.mop_pad_lifting_available
             )
             if values and len(values) == 3:
                 if self.status.mop_pad_lifting_available:
@@ -1234,14 +1234,14 @@ class DreameVacuumDevice:
                 elif cleaning_mode == 2:
                     values[0] = 0
 
-                cleaning_mode = DreameVacuumDevice.combine_group_value(values)
+                cleaning_mode = XiaomiVacuumDevice.combine_group_value(values)
         elif self.status.mop_pad_lifting_available:
             if cleaning_mode == 2:
                 cleaning_mode = 0
             elif cleaning_mode == 0:
                 cleaning_mode = 2
 
-        return self.set_property(DreameVacuumProperty.CLEANING_MODE, int(cleaning_mode))
+        return self.set_property(XiaomiVacuumProperty.CLEANING_MODE, int(cleaning_mode))
 
     def set_mop_pad_humidity(self, mop_pad_humidity: int) -> bool:
         """Set mop pad humidity."""
@@ -1251,13 +1251,13 @@ class DreameVacuumDevice:
             ):
                 raise InvalidActionException("Cannot set mop pad humidity when customized cleaning is enabled")
 
-            values = DreameVacuumDevice.split_group_value(
-                self.get_property(DreameVacuumProperty.CLEANING_MODE), self.status.mop_pad_lifting_available
+            values = XiaomiVacuumDevice.split_group_value(
+                self.get_property(XiaomiVacuumProperty.CLEANING_MODE), self.status.mop_pad_lifting_available
             )
             if values and len(values) == 3:
                 values[2] = mop_pad_humidity
                 return self.set_property(
-                    DreameVacuumProperty.CLEANING_MODE, DreameVacuumDevice.combine_group_value(values)
+                    XiaomiVacuumProperty.CLEANING_MODE, XiaomiVacuumDevice.combine_group_value(values)
                 )
 
     def set_water_volume(self, water_volume: int) -> bool:
@@ -1268,72 +1268,72 @@ class DreameVacuumDevice:
             ):
                 raise InvalidActionException("Cannot set water volume when customized cleaning is enabled")
 
-            return self.set_property(DreameVacuumProperty.WATER_VOLUME, int(water_volume))
+            return self.set_property(XiaomiVacuumProperty.WATER_VOLUME, int(water_volume))
 
     def set_dnd_enabled(self, dnd_enabled: bool) -> bool:
         """Set do not disturb function"""
-        return self.set_property(DreameVacuumProperty.DND, bool(dnd_enabled))
+        return self.set_property(XiaomiVacuumProperty.DND, bool(dnd_enabled))
 
     def set_dnd_start(self, dnd_start: str) -> bool:
         """Set do not disturb function"""
         time_pattern = re.compile("([0-1][0-9]|2[0-3]):[0-5][0-9]$")
         if not re.match(time_pattern, dnd_start):
             raise InvalidValueException("DND start time is not valid: (%s).", dnd_start)
-        return self.set_property(DreameVacuumProperty.DND_START, dnd_start)
+        return self.set_property(XiaomiVacuumProperty.DND_START, dnd_start)
 
     def set_dnd_end(self, dnd_end: str) -> bool:
         """Set do not disturb function"""
         time_pattern = re.compile("([0-1][0-9]|2[0-3]):[0-5][0-9]$")
         if not re.match(time_pattern, dnd_end):
             raise InvalidValueException("DND end time is not valid: (%s).", dnd_end)
-        return self.set_property(DreameVacuumProperty.DND_END, dnd_end)
+        return self.set_property(XiaomiVacuumProperty.DND_END, dnd_end)
 
     def set_self_clean_area(self, self_clean_area: int) -> bool:
         """Set self clean area."""
         if self.status.self_wash_base_available:
-            values = DreameVacuumDevice.split_group_value(
-                self.get_property(DreameVacuumProperty.CLEANING_MODE), self.status.mop_pad_lifting_available
+            values = XiaomiVacuumDevice.split_group_value(
+                self.get_property(XiaomiVacuumProperty.CLEANING_MODE), self.status.mop_pad_lifting_available
             )
             if values and len(values) == 3:
                 values[1] = self_clean_area
                 return self.set_property(
-                    DreameVacuumProperty.CLEANING_MODE, DreameVacuumDevice.combine_group_value(values)
+                    XiaomiVacuumProperty.CLEANING_MODE, XiaomiVacuumDevice.combine_group_value(values)
                 )
 
     def locate(self) -> dict[str, Any] | None:
         """Locate the vacuum cleaner."""
-        return self.call_action(DreameVacuumAction.LOCATE)
+        return self.call_action(XiaomiVacuumAction.LOCATE)
 
     def start(self) -> dict[str, Any] | None:
         """Start or resume the cleaning task."""
         self.schedule_update(10)
 
         if self.status.fast_mapping_paused:
-            return self.start_custom(DreameVacuumStatus.FAST_MAPPING.value)
+            return self.start_custom(XiaomiVacuumStatus.FAST_MAPPING.value)
 
         if not self.status.started:
-            self._update_status(DreameVacuumTaskStatus.AUTO_CLEANING, DreameVacuumStatus.CLEANING)
+            self._update_status(XiaomiVacuumTaskStatus.AUTO_CLEANING, XiaomiVacuumStatus.CLEANING)
 
         if self._map_manager:
             self._map_manager.editor.refresh_map()
-        return self.call_action(DreameVacuumAction.START)
+        return self.call_action(XiaomiVacuumAction.START)
 
     def start_custom(self, status, parameters: dict[str, Any] = None) -> dict[str, Any] | None:
         """Start custom cleaning task."""
-        if status != DreameVacuumStatus.FAST_MAPPING.value and self.status.fast_mapping:
+        if status != XiaomiVacuumStatus.FAST_MAPPING.value and self.status.fast_mapping:
             raise InvalidActionException("Cannot start cleaning while fast mapping")
 
-        payload = [{"piid": PIID(DreameVacuumProperty.STATUS, self.property_mapping), "value": status}]
+        payload = [{"piid": PIID(XiaomiVacuumProperty.STATUS, self.property_mapping), "value": status}]
 
         if parameters is not None:
             payload.append(
                 {
-                    "piid": PIID(DreameVacuumProperty.CLEANING_PROPERTIES, self.property_mapping),
+                    "piid": PIID(XiaomiVacuumProperty.CLEANING_PROPERTIES, self.property_mapping),
                     "value": parameters,
                 }
             )
 
-        return self.call_action(DreameVacuumAction.START_CUSTOM, payload)
+        return self.call_action(XiaomiVacuumAction.START_CUSTOM, payload)
 
     def stop(self) -> dict[str, Any] | None:
         """Stop the vacuum cleaner."""
@@ -1347,34 +1347,34 @@ class DreameVacuumDevice:
             if self._map_manager:
                 self._map_manager.editor.set_active_segments([])
 
-            self._update_status(DreameVacuumTaskStatus.COMPLETED, DreameVacuumStatus.STANDBY)
-        return self.call_action(DreameVacuumAction.STOP)
+            self._update_status(XiaomiVacuumTaskStatus.COMPLETED, XiaomiVacuumStatus.STANDBY)
+        return self.call_action(XiaomiVacuumAction.STOP)
 
     def pause(self) -> dict[str, Any] | None:
         """Pause the cleaning task."""
         if not self.status.paused and self.status.started:
-            self._update_property(DreameVacuumProperty.STATE, DreameVacuumState.PAUSED.value)
+            self._update_property(XiaomiVacuumProperty.STATE, XiaomiVacuumState.PAUSED.value)
 
-        return self.call_action(DreameVacuumAction.PAUSE)
+        return self.call_action(XiaomiVacuumAction.PAUSE)
 
     def return_to_base(self) -> dict[str, Any] | None:
         """Set the vacuum cleaner to return to the dock."""
         if self.status.started:
-            self._update_property(DreameVacuumProperty.STATE, DreameVacuumState.RETURNING.value)
+            self._update_property(XiaomiVacuumProperty.STATE, XiaomiVacuumState.RETURNING.value)
 
             # Clear active segments on current map data
             # if self._map_manager:
             #    self._map_manager.editor.set_active_segments([])
         if self._map_manager:
             self._map_manager.editor.refresh_map()
-        return self.call_action(DreameVacuumAction.CHARGE)
+        return self.call_action(XiaomiVacuumAction.CHARGE)
 
     def start_pause(self) -> dict[str, Any] | None:
         """Start or resume the cleaning task."""
         if (
             not self.status.started
-            or self.status.state is DreameVacuumState.PAUSED
-            or self.status.status is DreameVacuumStatus.BACK_HOME
+            or self.status.state is XiaomiVacuumState.PAUSED
+            or self.status.status is XiaomiVacuumStatus.BACK_HOME
         ):
             return self.start()
         return self.pause()
@@ -1410,10 +1410,10 @@ class DreameVacuumDevice:
                 # Set active areas on current map data is implemented on the app
                 self._map_manager.editor.set_active_areas(zones)
 
-            self._update_status(DreameVacuumTaskStatus.ZONE_CLEANING, DreameVacuumStatus.ZONE_CLEANING)
+            self._update_status(XiaomiVacuumTaskStatus.ZONE_CLEANING, XiaomiVacuumStatus.ZONE_CLEANING)
 
         return self.start_custom(
-            DreameVacuumStatus.ZONE_CLEANING.value,
+            XiaomiVacuumStatus.ZONE_CLEANING.value,
             str(json.dumps({"areas": cleanlist}, separators=(",", ":"))).replace(" ", ""),
         )
 
@@ -1441,7 +1441,7 @@ class DreameVacuumDevice:
         cleanlist = []
         index = 0
         segments = self.status.segments
-        custom_order = self.get_property(DreameVacuumProperty.CLEANING_MODE) is not None and self.status.custom_order
+        custom_order = self.get_property(XiaomiVacuumProperty.CLEANING_MODE) is not None and self.status.custom_order
 
         for segment_id in selected_segments:
             if not cleaning_times:
@@ -1482,10 +1482,10 @@ class DreameVacuumDevice:
                 # Set active segments on current map data is implemented on the app
                 self._map_manager.editor.set_active_segments(selected_segments)
 
-            self._update_status(DreameVacuumTaskStatus.SEGMENT_CLEANING, DreameVacuumStatus.SEGMENT_CLEANING)
+            self._update_status(XiaomiVacuumTaskStatus.SEGMENT_CLEANING, XiaomiVacuumStatus.SEGMENT_CLEANING)
 
         return self.start_custom(
-            DreameVacuumStatus.SEGMENT_CLEANING.value,
+            XiaomiVacuumStatus.SEGMENT_CLEANING.value,
             str(json.dumps({"selects": cleanlist}, separators=(",", ":"))).replace(" ", ""),
         )
 
@@ -1523,10 +1523,10 @@ class DreameVacuumDevice:
                 # Set active points on current map data is implemented on the app
                 self._map_manager.editor.set_active_points(points)
 
-            self._update_status(DreameVacuumTaskStatus.SPOT_CLEANING, DreameVacuumStatus.SPOT_CLEANING)
+            self._update_status(XiaomiVacuumTaskStatus.SPOT_CLEANING, XiaomiVacuumStatus.SPOT_CLEANING)
 
         return self.start_custom(
-            DreameVacuumStatus.SPOT_CLEANING.value,
+            XiaomiVacuumStatus.SPOT_CLEANING.value,
             str(json.dumps({"points": cleanlist}, separators=(",", ":"))).replace(" ", ""),
         )
 
@@ -1548,21 +1548,21 @@ class DreameVacuumDevice:
         ):
             raise InvalidActionException("Please make sure the mop pad is not installed before fast mapping.")
 
-        self._update_status(DreameVacuumTaskStatus.FAST_MAPPING, DreameVacuumStatus.FAST_MAPPING)
+        self._update_status(XiaomiVacuumTaskStatus.FAST_MAPPING, XiaomiVacuumStatus.FAST_MAPPING)
 
         if self._map_manager:
             self._map_manager.editor.refresh_map()
 
-        return self.start_custom(DreameVacuumStatus.FAST_MAPPING.value)
+        return self.start_custom(XiaomiVacuumStatus.FAST_MAPPING.value)
 
     def start_mapping(self) -> dict[str, Any] | None:
         """Create a new map by cleaning whole floor."""
         self.schedule_update(10)
         if self._map_manager:
             self._map_manager.editor.reset_map()
-            self._update_status(DreameVacuumTaskStatus.AUTO_CLEANING, DreameVacuumStatus.CLEANING)
+            self._update_status(XiaomiVacuumTaskStatus.AUTO_CLEANING, XiaomiVacuumStatus.CLEANING)
 
-        return self.start_custom(DreameVacuumStatus.CLEANING.value, "3")
+        return self.start_custom(XiaomiVacuumStatus.CLEANING.value, "3")
 
     def start_self_wash_base(self, parameters: dict[str, Any] = None) -> dict[str, Any] | None:
         """Start self-wash base for cleaning or drying the mop."""
@@ -1576,11 +1576,11 @@ class DreameVacuumDevice:
         if parameters is not None:
             payload = [
                 {
-                    "piid": PIID(DreameVacuumProperty.CLEANING_PROPERTIES, self.property_mapping),
+                    "piid": PIID(XiaomiVacuumProperty.CLEANING_PROPERTIES, self.property_mapping),
                     "value": parameters,
                 }
             ]
-        return self.call_action(DreameVacuumAction.START_WASHING, payload)
+        return self.call_action(XiaomiVacuumAction.START_WASHING, payload)
 
     def start_washing(self) -> dict[str, Any] | None:
         """Start washing the mop if self-wash base is present."""
@@ -1612,10 +1612,10 @@ class DreameVacuumDevice:
         """Clear warning error code from the vacuum cleaner."""
         if self.status.has_warning:
             return self.call_action(
-                DreameVacuumAction.CLEAR_WARNING,
+                XiaomiVacuumAction.CLEAR_WARNING,
                 [
                     {
-                        "piid": PIID(DreameVacuumProperty.CLEANING_PROPERTIES, self.property_mapping),
+                        "piid": PIID(XiaomiVacuumProperty.CLEANING_PROPERTIES, self.property_mapping),
                         "value": f"[{self.status.error.value}]",
                     }
                 ],
@@ -1632,11 +1632,11 @@ class DreameVacuumDevice:
         payload = '{"spdv":%(velocity)d,"spdw":%(rotation)d,"audio":"%(audio)s","random":%(random)d}' % {
             "velocity": velocity,
             "rotation": rotation,
-            "audio": "false" if self._remote_control or self.status.status is DreameVacuumStatus.SLEEPING else "true",
+            "audio": "false" if self._remote_control or self.status.status is XiaomiVacuumStatus.SLEEPING else "true",
             "random": randrange(65535),
         }
         self._remote_control = True
-        mapping = self.property_mapping[DreameVacuumProperty.REMOTE_CONTROL]
+        mapping = self.property_mapping[XiaomiVacuumProperty.REMOTE_CONTROL]
         return self._protocol.set_property(mapping["siid"], mapping["piid"], payload, 0)
 
     def install_voice_pack(self, lang_id: int, url: str, md5: str, size: int) -> dict[str, Any] | None:
@@ -1647,7 +1647,7 @@ class DreameVacuumDevice:
             "md5": md5,
             "size": size,
         }
-        mapping = self.property_mapping[DreameVacuumProperty.VOICE_CHANGE]
+        mapping = self.property_mapping[XiaomiVacuumProperty.VOICE_CHANGE]
         return self._protocol.set_property(mapping["siid"], mapping["piid"], payload, 1)
 
     def set_ai_detection(self, settings: dict[str, bool] | int) -> dict[str, Any] | None:
@@ -1679,7 +1679,7 @@ class DreameVacuumDevice:
                         "You need to accept privacy policy from the App before enabling AI obstacle detection feature"
                     )
 
-            mapping = self.property_mapping[DreameVacuumProperty.AI_DETECTION]
+            mapping = self.property_mapping[XiaomiVacuumProperty.AI_DETECTION]
             if isinstance(settings, int):
                 return self._protocol.set_property(mapping["siid"], mapping["piid"], settings, 1)
             return self._protocol.set_property(
@@ -1691,7 +1691,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             current_value = self.status.ai_obstacle_detection
             self.status.ai_obstacle_detection = bool(enabled)
-            value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+            value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
             if isinstance(value, int):
                 value = (value | 2) if self.status.ai_obstacle_detection else (value & -3)
                 result = self.set_ai_detection(value)
@@ -1707,7 +1707,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             current_value = self.status.obstacle_image_upload
             self.status.obstacle_image_upload = bool(enabled)
-            value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+            value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
             if isinstance(value, int):
                 value = (value | 32) if self.status.obstacle_image_upload else (value & -33)
                 result = self.set_ai_detection(value)
@@ -1723,7 +1723,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             current_value = self.status.pet_detection
             self.status.pet_detection = bool(enabled)
-            value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+            value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
             if isinstance(value, int):
                 value = (value | 16) if self.status.pet_detection else (value & -17)
                 result = self.set_ai_detection(value)
@@ -1739,7 +1739,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             current_value = self.status.human_detection
             self.status.human_detection = bool(enabled)
-            value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+            value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
             if isinstance(value, int):
                 return None
             else:
@@ -1754,7 +1754,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             current_value = self.status.furniture_detection
             self.status.furniture_detection = bool(enabled)
-            value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+            value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
             if isinstance(value, int):
                 value = (value | 1) if self.status.furniture_detection else (value & -2)
                 result = self.set_ai_detection(value)
@@ -1770,7 +1770,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             current_value = self.status.fluid_detection
             self.status.fluid_detection = bool(enabled)
-            value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+            value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
             if isinstance(value, int):
                 value = (value | 8) if self.status.fluid_detection else (value & -9)
                 result = self.set_ai_detection(value)
@@ -1786,7 +1786,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             current_value = self.status.obstacle_picture
             self.status.obstacle_picture = bool(enabled)
-            value = self.get_property(DreameVacuumProperty.AI_DETECTION)
+            value = self.get_property(XiaomiVacuumProperty.AI_DETECTION)
             if isinstance(value, int):
                 value = (value | 4) if self.status.obstacle_picture else (value & -5)
                 result = self.set_ai_detection(value)
@@ -1801,7 +1801,7 @@ class DreameVacuumDevice:
         if self.status.ai_detection_available:
             self._property_changed()
 
-            mapping = self.property_mapping[DreameVacuumProperty.AUTO_SWITCH_SETTINGS]
+            mapping = self.property_mapping[XiaomiVacuumProperty.AUTO_SWITCH_SETTINGS]
             return self._protocol.set_property(
                 mapping["siid"], mapping["piid"], str(json.dumps(settings, separators=(",", ":"))).replace(" ", ""), 1
             )
@@ -1838,7 +1838,7 @@ class DreameVacuumDevice:
         else:
             current_value = self.status.auto_drying
             self.status.auto_drying = 1 if enabled else 0
-            if not self.set_property(DreameVacuumProperty.INTELLIGENT_RECOGNITION, self.status.auto_drying):
+            if not self.set_property(XiaomiVacuumProperty.INTELLIGENT_RECOGNITION, self.status.auto_drying):
                 self.status.auto_drying = current_value
                 self._property_changed()
                 return False
@@ -1866,26 +1866,26 @@ class DreameVacuumDevice:
 
     def set_carpet_recognition(self, value: int) -> dict[str, Any] | None:
         if self.capability.carpet_recognition:
-            current_value = self.get_property(DreameVacuumProperty.CARPET_RECOGNITION)
+            current_value = self.get_property(XiaomiVacuumProperty.CARPET_RECOGNITION)
             if current_value is not None:
                 if bool(value):
                     value = 1
                 else:
-                    value = 3 if self.get_property(DreameVacuumProperty.CARPET_BOOST) == 1 else 0
-                if self.set_property(DreameVacuumProperty.CARPET_RECOGNITION, value):
+                    value = 3 if self.get_property(XiaomiVacuumProperty.CARPET_BOOST) == 1 else 0
+                if self.set_property(XiaomiVacuumProperty.CARPET_RECOGNITION, value):
                     if value == 1 and current_value == 3:
-                        self.set_property(DreameVacuumProperty.CARPET_BOOST, 1)
+                        self.set_property(XiaomiVacuumProperty.CARPET_BOOST, 1)
                     else:
-                        self._update_property(DreameVacuumProperty.CARPET_BOOST, 0)
+                        self._update_property(XiaomiVacuumProperty.CARPET_BOOST, 0)
 
     def set_multi_map(self, enabled: bool) -> bool:
-        if self.set_property(DreameVacuumProperty.MULTI_FLOOR_MAP, int(enabled)):
+        if self.set_property(XiaomiVacuumProperty.MULTI_FLOOR_MAP, int(enabled)):
             if (
                 self.status.auto_switch_settings_available
                 and not enabled
-                and self.get_property(DreameVacuumProperty.INTELLIGENT_RECOGNITION) == 1
+                and self.get_property(XiaomiVacuumProperty.INTELLIGENT_RECOGNITION) == 1
             ):
-                self.set_property(DreameVacuumProperty.INTELLIGENT_RECOGNITION, 0)
+                self.set_property(XiaomiVacuumProperty.INTELLIGENT_RECOGNITION, 0)
             return True
         return False
 
@@ -1897,8 +1897,8 @@ class DreameVacuumDevice:
         if self._map_manager:
             return self._map_manager.request_new_map()
         return self.call_action(
-            DreameVacuumAction.REQUEST_MAP,
-            [{"piid": PIID(DreameVacuumProperty.FRAME_INFO, self.property_mapping), "value": '{"frame_type":"I"}'}],
+            XiaomiVacuumAction.REQUEST_MAP,
+            [{"piid": PIID(XiaomiVacuumProperty.FRAME_INFO, self.property_mapping), "value": '{"frame_type":"I"}'}],
         )
 
     def update_map_data(self, parameters: dict[str, Any]) -> dict[str, Any] | None:
@@ -1909,10 +1909,10 @@ class DreameVacuumDevice:
             self._last_map_request = time.time()
 
         response = self.call_action(
-            DreameVacuumAction.UPDATE_MAP_DATA,
+            XiaomiVacuumAction.UPDATE_MAP_DATA,
             [
                 {
-                    "piid": PIID(DreameVacuumProperty.MAP_EXTEND_DATA, self.property_mapping),
+                    "piid": PIID(XiaomiVacuumProperty.MAP_EXTEND_DATA, self.property_mapping),
                     "value": str(json.dumps(parameters, separators=(",", ":"))).replace(" ", ""),
                 }
             ],
@@ -2027,7 +2027,7 @@ class DreameVacuumDevice:
                 self._last_map_request = time.time()
                 self._map_manager.schedule_update(10)
 
-            mapping = self.property_mapping[DreameVacuumProperty.MAP_RECOVERY]
+            mapping = self.property_mapping[XiaomiVacuumProperty.MAP_RECOVERY]
             response = self._protocol.set_property(
                 mapping["siid"],
                 mapping["piid"],
@@ -2241,7 +2241,7 @@ class DreameVacuumDevice:
         return self._protocol.cloud and self._protocol.cloud.logged_in and self._protocol.cloud.connected
 
 
-class DreameVacuumDeviceStatus:
+class XiaomiVacuumDeviceStatus:
     """Helper class for device status and int enum type properties.
     This class is used for determining various states of the device by its properties.
     Determined states are used by multiple validation and rendering condition checks.
@@ -2287,21 +2287,20 @@ class DreameVacuumDeviceStatus:
         self._device = device
 
     def update_static_properties(self):
-        self.lidar_navigation = bool(self._get_property(DreameVacuumProperty.MAP_SAVING) is None)
-        self.ai_detection_available = bool(self._get_property(DreameVacuumProperty.AI_DETECTION) is not None)
+        self.lidar_navigation = bool(self._get_property(XiaomiVacuumProperty.MAP_SAVING) is None)
+        self.ai_detection_available = bool(self._get_property(XiaomiVacuumProperty.AI_DETECTION) is not None)
         self.self_wash_base_available = bool(
-            self._get_property(DreameVacuumProperty.SELF_WASH_BASE_STATUS) is not None
+            self._get_property(XiaomiVacuumProperty.SELF_WASH_BASE_STATUS) is not None
         )
-        self.auto_empty_base_available = bool(self._get_property(DreameVacuumProperty.DUST_COLLECTION) is not None)
+        self.auto_empty_base_available = bool(self._get_property(XiaomiVacuumProperty.DUST_COLLECTION) is not None)
         self.customized_cleaning_available = bool(
-            self._get_property(DreameVacuumProperty.CUSTOMIZED_CLEANING) is not None
+            self._get_property(XiaomiVacuumProperty.CUSTOMIZED_CLEANING) is not None
         )
         self.auto_switch_settings_available = bool(
-            self._get_property(DreameVacuumProperty.AUTO_SWITCH_SETTINGS) is not None
+            self._get_property(XiaomiVacuumProperty.AUTO_SWITCH_SETTINGS) is not None
         )
         self.mop_pad_lifting_available = bool(
-            (self.self_wash_base_available and self.auto_empty_base_available)
-            or (self._device.info and "r2216" in self._device.info.model)
+            self.self_wash_base_available and self.auto_empty_base_available
         )
         self.robot_shape = (
             2
@@ -2309,12 +2308,12 @@ class DreameVacuumDeviceStatus:
             else 0 if self.lidar_navigation else 1
         )
 
-    def _get_property(self, prop: DreameVacuumProperty) -> Any:
+    def _get_property(self, prop: XiaomiVacuumProperty) -> Any:
         """Helper function for accessing a property from device"""
         return self._device.get_property(prop)
 
     @property
-    def _map_manager(self) -> DreameMapVacuumMapManager | None:
+    def _map_manager(self) -> XiaomiMapVacuumMapManager | None:
         """Helper property for accessing map manager from device"""
         return self._device._map_manager
 
@@ -2326,16 +2325,16 @@ class DreameVacuumDeviceStatus:
     @property
     def battery_level(self) -> int:
         """Return battery level of the device."""
-        return self._get_property(DreameVacuumProperty.BATTERY_LEVEL)
+        return self._get_property(XiaomiVacuumProperty.BATTERY_LEVEL)
 
     @property
-    def suction_level(self) -> DreameVacuumSuctionLevel:
+    def suction_level(self) -> XiaomiVacuumSuctionLevel:
         """Return suction level of the device."""
-        value = self._get_property(DreameVacuumProperty.SUCTION_LEVEL)
-        if value is not None and value in DreameVacuumSuctionLevel._value2member_map_:
-            return DreameVacuumSuctionLevel(value)
+        value = self._get_property(XiaomiVacuumProperty.SUCTION_LEVEL)
+        if value is not None and value in XiaomiVacuumSuctionLevel._value2member_map_:
+            return XiaomiVacuumSuctionLevel(value)
         _LOGGER.debug("SUCTION_LEVEL not supported: %s", value)
-        return DreameVacuumSuctionLevel.UNKNOWN
+        return XiaomiVacuumSuctionLevel.UNKNOWN
 
     @property
     def suction_level_name(self) -> str:
@@ -2343,13 +2342,13 @@ class DreameVacuumDeviceStatus:
         return SUCTION_LEVEL_CODE_TO_NAME.get(self.suction_level, STATE_UNKNOWN)
 
     @property
-    def water_volume(self) -> DreameVacuumWaterVolume:
+    def water_volume(self) -> XiaomiVacuumWaterVolume:
         """Return water volume of the device."""
-        value = self._get_property(DreameVacuumProperty.WATER_VOLUME)
-        if value is not None and value in DreameVacuumWaterVolume._value2member_map_:
-            return DreameVacuumWaterVolume(value)
+        value = self._get_property(XiaomiVacuumProperty.WATER_VOLUME)
+        if value is not None and value in XiaomiVacuumWaterVolume._value2member_map_:
+            return XiaomiVacuumWaterVolume(value)
         _LOGGER.debug("WATER_VOLUME not supported: %s", value)
-        return DreameVacuumWaterVolume.UNKNOWN
+        return XiaomiVacuumWaterVolume.UNKNOWN
 
     @property
     def water_volume_name(self) -> str:
@@ -2357,16 +2356,16 @@ class DreameVacuumDeviceStatus:
         return WATER_VOLUME_CODE_TO_NAME.get(self.water_volume, STATE_UNKNOWN)
 
     @property
-    def mop_pad_humidity(self) -> DreameVacuumMopPadHumidity:
+    def mop_pad_humidity(self) -> XiaomiVacuumMopPadHumidity:
         """Return mop pad humidity of the device."""
         if self.self_wash_base_available:
-            values = DreameVacuumDevice.split_group_value(self._get_property(DreameVacuumProperty.CLEANING_MODE))
+            values = XiaomiVacuumDevice.split_group_value(self._get_property(XiaomiVacuumProperty.CLEANING_MODE))
             if values and len(values) == 3:
                 value = values[2]
-                if value is not None and value in DreameVacuumMopPadHumidity._value2member_map_:
-                    return DreameVacuumMopPadHumidity(value)
+                if value is not None and value in XiaomiVacuumMopPadHumidity._value2member_map_:
+                    return XiaomiVacuumMopPadHumidity(value)
                 _LOGGER.debug("MOP_PAD_HUMIDITY not supported: %s", value)
-                return DreameVacuumMopPadHumidity.UNKNOWN
+                return XiaomiVacuumMopPadHumidity.UNKNOWN
 
     @property
     def mop_pad_humidity_name(self) -> str:
@@ -2374,41 +2373,41 @@ class DreameVacuumDeviceStatus:
         return MOP_PAD_HUMIDITY_CODE_TO_NAME.get(self.mop_pad_humidity, STATE_UNKNOWN)
 
     @property
-    def cleaning_mode(self) -> DreameVacuumCleaningMode:
+    def cleaning_mode(self) -> XiaomiVacuumCleaningMode:
         """Return cleaning mode of the device."""
-        value = self._get_property(DreameVacuumProperty.CLEANING_MODE)
+        value = self._get_property(XiaomiVacuumProperty.CLEANING_MODE)
         if self.self_wash_base_available:
-            values = DreameVacuumDevice.split_group_value(value, self.mop_pad_lifting_available)
+            values = XiaomiVacuumDevice.split_group_value(value, self.mop_pad_lifting_available)
             if values and len(values) == 3:
                 if not self.mop_pad_lifting_available:
                     if not self.water_tank_or_mop_installed:
-                        return DreameVacuumCleaningMode.SWEEPING
+                        return XiaomiVacuumCleaningMode.SWEEPING
                     if values[0] == 1:
-                        return DreameVacuumCleaningMode.MOPPING
-                    return DreameVacuumCleaningMode.SWEEPING_AND_MOPPING
+                        return XiaomiVacuumCleaningMode.MOPPING
+                    return XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
                 else:
                     if values[0] == 2:
-                        return DreameVacuumCleaningMode.SWEEPING
+                        return XiaomiVacuumCleaningMode.SWEEPING
                     if values[0] == 0:
-                        return DreameVacuumCleaningMode.SWEEPING_AND_MOPPING
+                        return XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
                     value = values[0]
         elif self.mop_pad_lifting_available:
             if value == 2:
-                return DreameVacuumCleaningMode.SWEEPING
+                return XiaomiVacuumCleaningMode.SWEEPING
             if value == 0:
-                return DreameVacuumCleaningMode.SWEEPING_AND_MOPPING
+                return XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
 
         if value is None:
             return (
-                DreameVacuumCleaningMode.SWEEPING_AND_MOPPING
+                XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
                 if self.water_tank_or_mop_installed
-                else DreameVacuumCleaningMode.SWEEPING
+                else XiaomiVacuumCleaningMode.SWEEPING
             )
 
-        if value in DreameVacuumCleaningMode._value2member_map_:
-            return DreameVacuumCleaningMode(value)
+        if value in XiaomiVacuumCleaningMode._value2member_map_:
+            return XiaomiVacuumCleaningMode(value)
         _LOGGER.debug("CLEANING_MODE not supported: %s", value)
-        return DreameVacuumCleaningMode.UNKNOWN
+        return XiaomiVacuumCleaningMode.UNKNOWN
 
     @property
     def cleaning_mode_name(self) -> str:
@@ -2416,13 +2415,13 @@ class DreameVacuumDeviceStatus:
         return CLEANING_MODE_CODE_TO_NAME.get(self.cleaning_mode, STATE_UNKNOWN)
 
     @property
-    def status(self) -> DreameVacuumStatus:
+    def status(self) -> XiaomiVacuumStatus:
         """Return status of the device."""
-        value = self._get_property(DreameVacuumProperty.STATUS)
-        if value is not None and value in DreameVacuumStatus._value2member_map_:
-            return DreameVacuumStatus(value)
+        value = self._get_property(XiaomiVacuumProperty.STATUS)
+        if value is not None and value in XiaomiVacuumStatus._value2member_map_:
+            return XiaomiVacuumStatus(value)
         _LOGGER.debug("STATUS not supported: %s", value)
-        return DreameVacuumStatus.UNKNOWN
+        return XiaomiVacuumStatus.UNKNOWN
 
     @property
     def status_name(self) -> str:
@@ -2430,13 +2429,50 @@ class DreameVacuumDeviceStatus:
         return STATUS_CODE_TO_NAME.get(self.status, STATE_UNKNOWN)
 
     @property
-    def task_status(self) -> DreameVacuumTaskStatus:
+    def task_status(self) -> XiaomiVacuumTaskStatus:
         """Return task status of the device."""
-        value = self._get_property(DreameVacuumProperty.TASK_STATUS)
-        if value is not None and value in DreameVacuumTaskStatus._value2member_map_:
-            return DreameVacuumTaskStatus(value)
+        value = self._get_property(XiaomiVacuumProperty.TASK_STATUS)
+        if value is not None and value in XiaomiVacuumTaskStatus._value2member_map_:
+            return XiaomiVacuumTaskStatus(value)
+
+        if XiaomiVacuumProperty.TASK_STATUS not in self._device.property_mapping:
+            return self._derive_task_status_from_status()
+
         _LOGGER.debug("TASK_STATUS not supported: %s", value)
-        return DreameVacuumTaskStatus.UNKNOWN
+        return XiaomiVacuumTaskStatus.UNKNOWN
+
+    def _derive_task_status_from_status(self) -> XiaomiVacuumTaskStatus:
+        """Derive task status from STATUS for devices that don't report TASK_STATUS directly."""
+        status_value = self._get_property(XiaomiVacuumProperty.STATUS)
+        if status_value is None:
+            return XiaomiVacuumTaskStatus.UNKNOWN
+
+        if status_value not in XiaomiVacuumStatus._value2member_map_:
+            return XiaomiVacuumTaskStatus.UNKNOWN
+
+        status = XiaomiVacuumStatus(status_value)
+
+        if status is XiaomiVacuumStatus.CLEANING:
+            return XiaomiVacuumTaskStatus.AUTO_CLEANING
+        if status is XiaomiVacuumStatus.SEGMENT_CLEANING:
+            return XiaomiVacuumTaskStatus.SEGMENT_CLEANING
+        if status is XiaomiVacuumStatus.ZONE_CLEANING:
+            return XiaomiVacuumTaskStatus.ZONE_CLEANING
+        if status is XiaomiVacuumStatus.SPOT_CLEANING:
+            return XiaomiVacuumTaskStatus.SPOT_CLEANING
+        if status is XiaomiVacuumStatus.FAST_MAPPING:
+            return XiaomiVacuumTaskStatus.FAST_MAPPING
+        if status is XiaomiVacuumStatus.PAUSED:
+            return XiaomiVacuumTaskStatus.AUTO_CLEANING_PAUSED
+        if status in (
+            XiaomiVacuumStatus.IDLE,
+            XiaomiVacuumStatus.STANDBY,
+            XiaomiVacuumStatus.CHARGING,
+            XiaomiVacuumStatus.BACK_HOME,
+        ):
+            return XiaomiVacuumTaskStatus.COMPLETED
+
+        return XiaomiVacuumTaskStatus.COMPLETED
 
     @property
     def task_status_name(self) -> str:
@@ -2444,19 +2480,19 @@ class DreameVacuumDeviceStatus:
         return TASK_STATUS_CODE_TO_NAME.get(self.task_status, STATE_UNKNOWN)
 
     @property
-    def water_tank(self) -> DreameVacuumWaterTank:
+    def water_tank(self) -> XiaomiVacuumWaterTank:
         """Return water tank of the device."""
-        value = self._get_property(DreameVacuumProperty.WATER_TANK)
+        value = self._get_property(XiaomiVacuumProperty.WATER_TANK)
         if value is not None:
             if value == 3:
-                return DreameVacuumWaterTank.INSTALLED
+                return XiaomiVacuumWaterTank.INSTALLED
             if value == 2:
-                return DreameVacuumWaterTank.MOP_INSTALLED
+                return XiaomiVacuumWaterTank.MOP_INSTALLED
 
-            if value in DreameVacuumWaterTank._value2member_map_:
-                return DreameVacuumWaterTank(value)
+            if value in XiaomiVacuumWaterTank._value2member_map_:
+                return XiaomiVacuumWaterTank(value)
         _LOGGER.debug("WATER_TANK not supported: %s", value)
-        return DreameVacuumWaterTank.UNKNOWN
+        return XiaomiVacuumWaterTank.UNKNOWN
 
     @property
     def water_tank_name(self) -> str:
@@ -2464,17 +2500,17 @@ class DreameVacuumDeviceStatus:
         return WATER_TANK_CODE_TO_NAME.get(self.water_tank, STATE_UNKNOWN)
 
     @property
-    def charging_status(self) -> DreameVacuumChargingStatus:
+    def charging_status(self) -> XiaomiVacuumChargingStatus:
         """Return charging status of the device."""
-        value = self._get_property(DreameVacuumProperty.CHARGING_STATUS)
-        if value is not None and value in DreameVacuumChargingStatus._value2member_map_:
-            value = DreameVacuumChargingStatus(value)
+        value = self._get_property(XiaomiVacuumProperty.CHARGING_STATUS)
+        if value is not None and value in XiaomiVacuumChargingStatus._value2member_map_:
+            value = XiaomiVacuumChargingStatus(value)
             # Charging status complete is not present on older firmwares
-            if value is DreameVacuumChargingStatus.CHARGING and self.battery_level == 100:
-                return DreameVacuumChargingStatus.CHARGING_COMPLETED
+            if value is XiaomiVacuumChargingStatus.CHARGING and self.battery_level == 100:
+                return XiaomiVacuumChargingStatus.CHARGING_COMPLETED
             return value
         _LOGGER.debug("CHARGING_STATUS not supported: %s", value)
-        return DreameVacuumChargingStatus.UNKNOWN
+        return XiaomiVacuumChargingStatus.UNKNOWN
 
     @property
     def charging_status_name(self) -> str:
@@ -2482,13 +2518,13 @@ class DreameVacuumDeviceStatus:
         return CHARGING_STATUS_CODE_TO_NAME.get(self.charging_status, STATE_UNKNOWN)
 
     @property
-    def auto_empty_status(self) -> DreameVacuumAutoEmptyStatus:
+    def auto_empty_status(self) -> XiaomiVacuumAutoEmptyStatus:
         """Return auto empty status of the device."""
-        value = self._get_property(DreameVacuumProperty.AUTO_EMPTY_STATUS)
-        if value is not None and value in DreameVacuumAutoEmptyStatus._value2member_map_:
-            return DreameVacuumAutoEmptyStatus(value)
+        value = self._get_property(XiaomiVacuumProperty.AUTO_EMPTY_STATUS)
+        if value is not None and value in XiaomiVacuumAutoEmptyStatus._value2member_map_:
+            return XiaomiVacuumAutoEmptyStatus(value)
         _LOGGER.debug("AUTO_EMPTY_STATUS not supported: %s", value)
-        return DreameVacuumAutoEmptyStatus.UNKNOWN
+        return XiaomiVacuumAutoEmptyStatus.UNKNOWN
 
     @property
     def auto_empty_status_name(self) -> str:
@@ -2496,13 +2532,13 @@ class DreameVacuumDeviceStatus:
         return AUTO_EMPTY_STATUS_TO_NAME.get(self.auto_empty_status, STATE_UNKNOWN)
 
     @property
-    def relocation_status(self) -> DreameVacuumRelocationStatus:
+    def relocation_status(self) -> XiaomiVacuumRelocationStatus:
         """Return relocation status of the device."""
-        value = self._get_property(DreameVacuumProperty.RELOCATION_STATUS)
-        if value is not None and value in DreameVacuumRelocationStatus._value2member_map_:
-            return DreameVacuumRelocationStatus(value)
+        value = self._get_property(XiaomiVacuumProperty.RELOCATION_STATUS)
+        if value is not None and value in XiaomiVacuumRelocationStatus._value2member_map_:
+            return XiaomiVacuumRelocationStatus(value)
         _LOGGER.debug("RELOCATION_STATUS not supported: %s", value)
-        return DreameVacuumRelocationStatus.UNKNOWN
+        return XiaomiVacuumRelocationStatus.UNKNOWN
 
     @property
     def relocation_status_name(self) -> str:
@@ -2510,13 +2546,13 @@ class DreameVacuumDeviceStatus:
         return RELOCATION_STATUS_CODE_TO_NAME.get(self.relocation_status, STATE_UNKNOWN)
 
     @property
-    def self_wash_base_status(self) -> DreameVacuumSelfWashBaseStatus:
+    def self_wash_base_status(self) -> XiaomiVacuumSelfWashBaseStatus:
         """Return self-wash base status of the device."""
-        value = self._get_property(DreameVacuumProperty.SELF_WASH_BASE_STATUS)
-        if value is not None and value in DreameVacuumSelfWashBaseStatus._value2member_map_:
-            return DreameVacuumSelfWashBaseStatus(value)
+        value = self._get_property(XiaomiVacuumProperty.SELF_WASH_BASE_STATUS)
+        if value is not None and value in XiaomiVacuumSelfWashBaseStatus._value2member_map_:
+            return XiaomiVacuumSelfWashBaseStatus(value)
         _LOGGER.debug("SELF_WASH_BASE_STATUS not supported: %s", value)
-        return DreameVacuumSelfWashBaseStatus.UNKNOWN
+        return XiaomiVacuumSelfWashBaseStatus.UNKNOWN
 
     @property
     def self_wash_base_status_name(self) -> str:
@@ -2524,12 +2560,12 @@ class DreameVacuumDeviceStatus:
         return SELF_WASH_BASE_STATUS_TO_NAME.get(self.self_wash_base_status, STATE_UNKNOWN)
 
     @property
-    def dust_collection(self) -> DreameVacuumDustCollection:
-        value = self._get_property(DreameVacuumProperty.DUST_COLLECTION)
-        if value is not None and value in DreameVacuumDustCollection._value2member_map_:
-            return DreameVacuumDustCollection(value)
+    def dust_collection(self) -> XiaomiVacuumDustCollection:
+        value = self._get_property(XiaomiVacuumProperty.DUST_COLLECTION)
+        if value is not None and value in XiaomiVacuumDustCollection._value2member_map_:
+            return XiaomiVacuumDustCollection(value)
         _LOGGER.debug("DUST_COLLECTION not supported: %s", value)
-        return DreameVacuumDustCollection.UNKNOWN
+        return XiaomiVacuumDustCollection.UNKNOWN
 
     @property
     def dust_collection_name(self) -> str:
@@ -2537,13 +2573,13 @@ class DreameVacuumDeviceStatus:
         return DUST_COLLECTION_TO_NAME.get(self.dust_collection, STATE_UNKNOWN)
 
     @property
-    def carpet_sensitivity(self) -> DreameVacuumCarpetSensitivity:
+    def carpet_sensitivity(self) -> XiaomiVacuumCarpetSensitivity:
         """Return carpet sensitivity of the device."""
-        value = self._get_property(DreameVacuumProperty.CARPET_SENSITIVITY)
-        if value is not None and value in DreameVacuumCarpetSensitivity._value2member_map_:
-            return DreameVacuumCarpetSensitivity(value)
+        value = self._get_property(XiaomiVacuumProperty.CARPET_SENSITIVITY)
+        if value is not None and value in XiaomiVacuumCarpetSensitivity._value2member_map_:
+            return XiaomiVacuumCarpetSensitivity(value)
         _LOGGER.debug("CARPET_SENSITIVITY not supported: %s", value)
-        return DreameVacuumCarpetSensitivity.UNKNOWN
+        return XiaomiVacuumCarpetSensitivity.UNKNOWN
 
     @property
     def carpet_sensitivity_name(self) -> str:
@@ -2551,30 +2587,86 @@ class DreameVacuumDeviceStatus:
         return CARPET_SENSITIVITY_CODE_TO_NAME.get(self.carpet_sensitivity, STATE_UNKNOWN)
 
     @property
-    def state(self) -> DreameVacuumState:
+    def state(self) -> XiaomiVacuumState:
         """Return state of the device."""
-        value = self._get_property(DreameVacuumProperty.STATE)
-        if value is not None and value in DreameVacuumState._value2member_map_:
-            vacuum_state = DreameVacuumState(value)
+        value = self._get_property(XiaomiVacuumProperty.STATE)
+        if value is not None and value in XiaomiVacuumState._value2member_map_:
+            vacuum_state = XiaomiVacuumState(value)
 
             ## Determine state as implemented on the app
-            if vacuum_state is DreameVacuumState.IDLE:
+            if vacuum_state is XiaomiVacuumState.IDLE:
                 if self.started or self.cleaning_paused or self.fast_mapping_paused:
-                    return DreameVacuumState.PAUSED
+                    return XiaomiVacuumState.PAUSED
                 elif self.docked:
                     ## This is for compatibility with various lovelace vacuum cards
                     ## Device will report idle when charging is completed and vacuum card will display return to dock icon even when robot is docked
                     if self.washing:
-                        return DreameVacuumState.WASHING
+                        return XiaomiVacuumState.WASHING
                     if self.drying:
-                        return DreameVacuumState.DRYING
+                        return XiaomiVacuumState.DRYING
                     if self.charging:
-                        return DreameVacuumState.CHARGING
-                    if self.charging_status is DreameVacuumChargingStatus.CHARGING_COMPLETED:
-                        return DreameVacuumState.CHARGING_COMPLETED
+                        return XiaomiVacuumState.CHARGING
+                    if self.charging_status is XiaomiVacuumChargingStatus.CHARGING_COMPLETED:
+                        return XiaomiVacuumState.CHARGING_COMPLETED
             return vacuum_state
+
+        if XiaomiVacuumProperty.STATE not in self._device.property_mapping:
+            return self._derive_state_from_status()
+
         _LOGGER.debug("STATE not supported: %s", value)
-        return DreameVacuumState.UNKNOWN
+        return XiaomiVacuumState.UNKNOWN
+
+    def _derive_state_from_status(self) -> XiaomiVacuumState:
+        """Derive state from STATUS for devices that don't report STATE directly (e.g. X20 Max)."""
+        status_value = self._get_property(XiaomiVacuumProperty.STATUS)
+        if status_value is None:
+            return XiaomiVacuumState.UNKNOWN
+
+        if status_value not in XiaomiVacuumStatus._value2member_map_:
+            _LOGGER.debug("STATUS value not recognized for state derivation: %s", status_value)
+            return XiaomiVacuumState.UNKNOWN
+
+        status = XiaomiVacuumStatus(status_value)
+        cleaning_mode = self.cleaning_mode
+
+        if status in (
+            XiaomiVacuumStatus.CLEANING,
+            XiaomiVacuumStatus.SEGMENT_CLEANING,
+            XiaomiVacuumStatus.ZONE_CLEANING,
+            XiaomiVacuumStatus.SPOT_CLEANING,
+            XiaomiVacuumStatus.PART_CLEANING,
+        ):
+            if cleaning_mode is XiaomiVacuumCleaningMode.MOPPING:
+                return XiaomiVacuumState.MOPPING
+            elif cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING:
+                return XiaomiVacuumState.SWEEPING_AND_MOPPING
+            return XiaomiVacuumState.SWEEPING
+
+        if status is XiaomiVacuumStatus.PAUSED:
+            return XiaomiVacuumState.PAUSED
+
+        if status is XiaomiVacuumStatus.BACK_HOME:
+            return XiaomiVacuumState.RETURNING
+
+        if status is XiaomiVacuumStatus.CHARGING:
+            battery = self._get_property(XiaomiVacuumProperty.BATTERY_LEVEL)
+            if battery is not None and battery >= 100:
+                return XiaomiVacuumState.CHARGING_COMPLETED
+            return XiaomiVacuumState.CHARGING
+
+        if status in (XiaomiVacuumStatus.IDLE, XiaomiVacuumStatus.STANDBY):
+            if self.charging_status is XiaomiVacuumChargingStatus.CHARGING_COMPLETED:
+                return XiaomiVacuumState.CHARGING_COMPLETED
+            return XiaomiVacuumState.IDLE
+
+        if status is XiaomiVacuumStatus.FAST_MAPPING:
+            return XiaomiVacuumState.BUILDING
+
+        if status is XiaomiVacuumStatus.ERROR:
+            return XiaomiVacuumState.ERROR
+
+        _LOGGER.debug("Unhandled STATUS for state derivation: %s", status)
+        return XiaomiVacuumState.UNKNOWN
 
     @property
     def state_name(self) -> str:
@@ -2582,16 +2674,16 @@ class DreameVacuumDeviceStatus:
         return STATE_CODE_TO_STATE.get(self.state, STATE_UNKNOWN)
 
     @property
-    def self_clean_area(self) -> DreameVacuumSelfCleanArea:
+    def self_clean_area(self) -> XiaomiVacuumSelfCleanArea:
         """Return self-clean area of the device."""
         if self.self_wash_base_available:
-            values = DreameVacuumDevice.split_group_value(self._get_property(DreameVacuumProperty.CLEANING_MODE))
+            values = XiaomiVacuumDevice.split_group_value(self._get_property(XiaomiVacuumProperty.CLEANING_MODE))
             if values and len(values) == 3:
                 value = values[1]
-                if value is not None and value in DreameVacuumSelfCleanArea._value2member_map_:
-                    return DreameVacuumSelfCleanArea(value)
+                if value is not None and value in XiaomiVacuumSelfCleanArea._value2member_map_:
+                    return XiaomiVacuumSelfCleanArea(value)
                 _LOGGER.debug("SELF_CLEAN_AREA not supported: %s", value)
-                return DreameVacuumSelfCleanArea.UNKNOWN
+                return XiaomiVacuumSelfCleanArea.UNKNOWN
 
     @property
     def self_clean_area_name(self) -> str:
@@ -2599,14 +2691,14 @@ class DreameVacuumDeviceStatus:
         return SELF_AREA_CLEAN_TO_NAME.get(self.self_clean_area, STATE_UNKNOWN)
 
     @property
-    def mop_wash_level(self) -> DreameVacuumSelfCleanArea:
+    def mop_wash_level(self) -> XiaomiVacuumSelfCleanArea:
         """Return mop wash level of the device."""
         if self.self_wash_base_available:
-            value = self._get_property(DreameVacuumProperty.MOP_WASH_LEVEL)
-            if value is not None and value in DreameVacuumMopWashLevel._value2member_map_:
-                return DreameVacuumMopWashLevel(value)
+            value = self._get_property(XiaomiVacuumProperty.MOP_WASH_LEVEL)
+            if value is not None and value in XiaomiVacuumMopWashLevel._value2member_map_:
+                return XiaomiVacuumMopWashLevel(value)
             _LOGGER.debug("MOP_WASH_LEVEL not supported: %s", value)
-            return DreameVacuumMopWashLevel.UNKNOWN
+            return XiaomiVacuumMopWashLevel.UNKNOWN
 
     @property
     def mop_wash_level_name(self) -> str:
@@ -2616,18 +2708,18 @@ class DreameVacuumDeviceStatus:
     @property
     def mopping_type_name(self) -> str:
         """Return moping type as string for translation."""
-        if self.mopping_type is not None and self.mopping_type in DreameVacuumMoppingType._value2member_map_:
-            return MOPPING_TYPE_TO_NAME.get(DreameVacuumMoppingType(self.mopping_type), STATE_UNKNOWN)
+        if self.mopping_type is not None and self.mopping_type in XiaomiVacuumMoppingType._value2member_map_:
+            return MOPPING_TYPE_TO_NAME.get(XiaomiVacuumMoppingType(self.mopping_type), STATE_UNKNOWN)
         return STATE_UNKNOWN
 
     @property
-    def error(self) -> DreameVacuumErrorCode:
+    def error(self) -> XiaomiVacuumErrorCode:
         """Return error of the device."""
-        value = self._get_property(DreameVacuumProperty.ERROR)
-        if value is not None and value in DreameVacuumErrorCode._value2member_map_:
-            return DreameVacuumErrorCode(value)
+        value = self._get_property(XiaomiVacuumProperty.ERROR)
+        if value is not None and value in XiaomiVacuumErrorCode._value2member_map_:
+            return XiaomiVacuumErrorCode(value)
         _LOGGER.debug("ERROR_CODE not supported: %s", value)
-        return DreameVacuumErrorCode.UNKNOWN
+        return XiaomiVacuumErrorCode.UNKNOWN
 
     @property
     def error_name(self) -> str:
@@ -2670,7 +2762,7 @@ class DreameVacuumDeviceStatus:
     def has_error(self) -> bool:
         """Returns true when an error is present."""
         error = self.error
-        return bool(error.value > 0 and not self.has_warning and error != DreameVacuumErrorCode.BATTERY_LOW)
+        return bool(error.value > 0 and not self.has_warning and error != XiaomiVacuumErrorCode.BATTERY_LOW)
 
     @property
     def has_warning(self) -> bool:
@@ -2679,32 +2771,32 @@ class DreameVacuumDeviceStatus:
         return bool(
             error.value > 0
             and (
-                error == DreameVacuumErrorCode.REMOVE_MOP
-                or error == DreameVacuumErrorCode.MOP_REMOVED_2
-                or error == DreameVacuumErrorCode.CLEAN_MOP_PAD
-                or error == DreameVacuumErrorCode.BLOCKED
-                or error == DreameVacuumErrorCode.WATER_TANK_DRY
-                or error == DreameVacuumErrorCode.MOP_PAD_STOP_ROTATE
-                or error == DreameVacuumErrorCode.MOP_PAD_STOP_ROTATE_2
+                error == XiaomiVacuumErrorCode.REMOVE_MOP
+                or error == XiaomiVacuumErrorCode.MOP_REMOVED_2
+                or error == XiaomiVacuumErrorCode.CLEAN_MOP_PAD
+                or error == XiaomiVacuumErrorCode.BLOCKED
+                or error == XiaomiVacuumErrorCode.WATER_TANK_DRY
+                or error == XiaomiVacuumErrorCode.MOP_PAD_STOP_ROTATE
+                or error == XiaomiVacuumErrorCode.MOP_PAD_STOP_ROTATE_2
             )
         )
 
     @property
     def dust_collection_available(self) -> bool:
         """Returns true when robot is docked and can start auto emptying."""
-        return bool(self._get_property(DreameVacuumProperty.DUST_COLLECTION))
+        return bool(self._get_property(XiaomiVacuumProperty.DUST_COLLECTION))
 
     @property
     def self_clean(self) -> bool:
-        return bool(self._get_property(DreameVacuumProperty.SELF_CLEAN) == 1)
+        return bool(self._get_property(XiaomiVacuumProperty.SELF_CLEAN) == 1)
 
     @property
     def scheduled_clean(self) -> bool:
-        return bool(self._get_property(DreameVacuumProperty.SCHEDULED_CLEAN) == 1)
+        return bool(self._get_property(XiaomiVacuumProperty.SCHEDULED_CLEAN) == 1)
 
     @property
     def auto_mount(self) -> bool:
-        return bool(self._get_property(DreameVacuumProperty.AUTO_MOUNT_MOP) == 1)
+        return bool(self._get_property(XiaomiVacuumProperty.AUTO_MOUNT_MOP) == 1)
 
     @property
     def dnd_remaining(self) -> bool:
@@ -2748,15 +2840,15 @@ class DreameVacuumDeviceStatus:
     def water_tank_or_mop_installed(self) -> bool:
         """Returns true when water tank or additional mop is installed to the device."""
         water_tank = self.water_tank
-        return bool(water_tank is DreameVacuumWaterTank.INSTALLED or water_tank is DreameVacuumWaterTank.MOP_INSTALLED)
+        return bool(water_tank is XiaomiVacuumWaterTank.INSTALLED or water_tank is XiaomiVacuumWaterTank.MOP_INSTALLED)
 
     @property
     def located(self) -> bool:
         """Returns true when robot knows its position on current map."""
         relocation_status = self.relocation_status
         return bool(
-            relocation_status is DreameVacuumRelocationStatus.LOCATED
-            or relocation_status is DreameVacuumRelocationStatus.UNKNOWN
+            relocation_status is XiaomiVacuumRelocationStatus.LOCATED
+            or relocation_status is XiaomiVacuumRelocationStatus.UNKNOWN
         )
 
     @property
@@ -2764,14 +2856,14 @@ class DreameVacuumDeviceStatus:
         """Returns true when cleaning mode is sweeping therefore cannot set its water volume."""
         cleaning_mode = self.cleaning_mode
         return bool(
-            cleaning_mode is not DreameVacuumCleaningMode.MOPPING
-            and cleaning_mode is not DreameVacuumCleaningMode.SWEEPING_AND_MOPPING
+            cleaning_mode is not XiaomiVacuumCleaningMode.MOPPING
+            and cleaning_mode is not XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
         )
 
     @property
     def mopping(self) -> bool:
         """Returns true when cleaning mode is mopping therefore cannot set its suction level."""
-        return bool(self.cleaning_mode is DreameVacuumCleaningMode.MOPPING)
+        return bool(self.cleaning_mode is XiaomiVacuumCleaningMode.MOPPING)
 
     @property
     def zone_cleaning(self) -> bool:
@@ -2781,10 +2873,10 @@ class DreameVacuumDeviceStatus:
             self._device_connected
             and self.started
             and (
-                task_status is DreameVacuumTaskStatus.ZONE_CLEANING
-                or task_status is DreameVacuumTaskStatus.ZONE_CLEANING_PAUSED
-                or task_status is DreameVacuumTaskStatus.ZONE_MOPPING_PAUSED
-                or task_status is DreameVacuumTaskStatus.ZONE_DOCKING_PAUSED
+                task_status is XiaomiVacuumTaskStatus.ZONE_CLEANING
+                or task_status is XiaomiVacuumTaskStatus.ZONE_CLEANING_PAUSED
+                or task_status is XiaomiVacuumTaskStatus.ZONE_MOPPING_PAUSED
+                or task_status is XiaomiVacuumTaskStatus.ZONE_DOCKING_PAUSED
             )
         )
 
@@ -2796,9 +2888,9 @@ class DreameVacuumDeviceStatus:
             self._device_connected
             and self.started
             and (
-                task_status is DreameVacuumTaskStatus.SPOT_CLEANING
-                or task_status is DreameVacuumTaskStatus.SPOT_CLEANING_PAUSED
-                or self.status is DreameVacuumStatus.SPOT_CLEANING
+                task_status is XiaomiVacuumTaskStatus.SPOT_CLEANING
+                or task_status is XiaomiVacuumTaskStatus.SPOT_CLEANING_PAUSED
+                or self.status is XiaomiVacuumStatus.SPOT_CLEANING
             )
         )
 
@@ -2810,10 +2902,10 @@ class DreameVacuumDeviceStatus:
             self._device_connected
             and self.started
             and (
-                task_status is DreameVacuumTaskStatus.SEGMENT_CLEANING
-                or task_status is DreameVacuumTaskStatus.SEGMENT_CLEANING_PAUSED
-                or task_status is DreameVacuumTaskStatus.SEGMENT_MOPPING_PAUSED
-                or task_status is DreameVacuumTaskStatus.SEGMENT_DOCKING_PAUSED
+                task_status is XiaomiVacuumTaskStatus.SEGMENT_CLEANING
+                or task_status is XiaomiVacuumTaskStatus.SEGMENT_CLEANING_PAUSED
+                or task_status is XiaomiVacuumTaskStatus.SEGMENT_MOPPING_PAUSED
+                or task_status is XiaomiVacuumTaskStatus.SEGMENT_DOCKING_PAUSED
             )
         )
 
@@ -2825,10 +2917,10 @@ class DreameVacuumDeviceStatus:
             self._device_connected
             and self.started
             and (
-                task_status is DreameVacuumTaskStatus.AUTO_CLEANING
-                or task_status is DreameVacuumTaskStatus.AUTO_CLEANING_PAUSED
-                or task_status is DreameVacuumTaskStatus.AUTO_MOPPING_PAUSED
-                or task_status is DreameVacuumTaskStatus.AUTO_DOCKING_PAUSED
+                task_status is XiaomiVacuumTaskStatus.AUTO_CLEANING
+                or task_status is XiaomiVacuumTaskStatus.AUTO_CLEANING_PAUSED
+                or task_status is XiaomiVacuumTaskStatus.AUTO_MOPPING_PAUSED
+                or task_status is XiaomiVacuumTaskStatus.AUTO_DOCKING_PAUSED
             )
         )
 
@@ -2838,8 +2930,8 @@ class DreameVacuumDeviceStatus:
         return bool(
             self._device_connected
             and (
-                self.task_status is DreameVacuumTaskStatus.FAST_MAPPING
-                or self.status is DreameVacuumStatus.FAST_MAPPING
+                self.task_status is XiaomiVacuumTaskStatus.FAST_MAPPING
+                or self.status is XiaomiVacuumStatus.FAST_MAPPING
                 or self.fast_mapping_paused
             )
         )
@@ -2850,48 +2942,48 @@ class DreameVacuumDeviceStatus:
         Used for resuming fast cleaning on start because standard start action can not be used for resuming fast mapping.
         """
 
-        state = self._get_property(DreameVacuumProperty.STATE)
+        state = self._get_property(XiaomiVacuumProperty.STATE)
         task_status = self.task_status
         return bool(
             (
-                task_status == DreameVacuumTaskStatus.FAST_MAPPING
-                or task_status == DreameVacuumTaskStatus.MAP_CLEANING_PAUSED
+                task_status == XiaomiVacuumTaskStatus.FAST_MAPPING
+                or task_status == XiaomiVacuumTaskStatus.MAP_CLEANING_PAUSED
             )
             and (
-                state == DreameVacuumState.PAUSED
-                or state == DreameVacuumState.ERROR
-                or state == DreameVacuumState.IDLE
+                state == XiaomiVacuumState.PAUSED
+                or state == XiaomiVacuumState.ERROR
+                or state == XiaomiVacuumState.IDLE
             )
         )
 
     @property
     def carpet_avoidance(self) -> bool:
         """Returns true when carpet avoidance feature is enabled."""
-        value = self._get_property(DreameVacuumProperty.CARPET_AVOIDANCE)
+        value = self._get_property(XiaomiVacuumProperty.CARPET_AVOIDANCE)
         return bool(value == 1)
 
     @property
     def auto_add_detergent(self) -> bool:
         """Returns true when auto-add detergent feature is enabled."""
-        value = self._get_property(DreameVacuumProperty.AUTO_ADD_DETERGENT)
+        value = self._get_property(XiaomiVacuumProperty.AUTO_ADD_DETERGENT)
         return bool(value == 1 or value == 3)
 
     @property
     def cleaning_paused(self) -> bool:
         """Returns true when device battery is too low for resuming its task and needs to be charged before continuing."""
-        return bool(self._get_property(DreameVacuumProperty.CLEANING_PAUSED))
+        return bool(self._get_property(XiaomiVacuumProperty.CLEANING_PAUSED))
 
     @property
     def charging(self) -> bool:
         """Returns true when device is currently charging."""
-        return bool(self.charging_status is DreameVacuumChargingStatus.CHARGING)
+        return bool(self.charging_status is XiaomiVacuumChargingStatus.CHARGING)
 
     @property
     def docked(self) -> bool:
         """Returns true when device is docked."""
         return bool(
             self.charging
-            or self.charging_status is DreameVacuumChargingStatus.CHARGING_COMPLETED
+            or self.charging_status is XiaomiVacuumChargingStatus.CHARGING_COMPLETED
             or self.washing
             or self.drying
             or self.washing_paused
@@ -2900,7 +2992,7 @@ class DreameVacuumDeviceStatus:
     @property
     def sleeping(self) -> bool:
         """Returns true when device is sleeping."""
-        return bool(self.status is DreameVacuumStatus.SLEEPING)
+        return bool(self.status is XiaomiVacuumStatus.SLEEPING)
 
     @property
     def returning_paused(self) -> bool:
@@ -2908,22 +3000,22 @@ class DreameVacuumDeviceStatus:
         task_status = self.task_status
         return bool(
             self._device_connected
-            and task_status is DreameVacuumTaskStatus.DOCKING_PAUSED
-            or task_status is DreameVacuumTaskStatus.AUTO_DOCKING_PAUSED
-            or task_status is DreameVacuumTaskStatus.SEGMENT_DOCKING_PAUSED
-            or task_status is DreameVacuumTaskStatus.ZONE_DOCKING_PAUSED
+            and task_status is XiaomiVacuumTaskStatus.DOCKING_PAUSED
+            or task_status is XiaomiVacuumTaskStatus.AUTO_DOCKING_PAUSED
+            or task_status is XiaomiVacuumTaskStatus.SEGMENT_DOCKING_PAUSED
+            or task_status is XiaomiVacuumTaskStatus.ZONE_DOCKING_PAUSED
         )
 
     @property
     def returning(self) -> bool:
         """Returns true when returning to dock for charging or washing."""
-        return bool(self._device_connected and (self.status is DreameVacuumStatus.BACK_HOME or self.returning_to_wash))
+        return bool(self._device_connected and (self.status is XiaomiVacuumStatus.BACK_HOME or self.returning_to_wash))
 
     @property
     def started(self) -> bool:
         """Returns true when device has an active task.
         Used for preventing updates on settings that relates to currently performing task."""
-        return bool(self.task_status != DreameVacuumTaskStatus.COMPLETED or self.cleaning_paused)
+        return bool(self.task_status != XiaomiVacuumTaskStatus.COMPLETED or self.cleaning_paused)
 
     @property
     def paused(self) -> bool:
@@ -2932,10 +3024,10 @@ class DreameVacuumDeviceStatus:
         return bool(
             self.started
             and (
-                status is DreameVacuumStatus.PAUSED
-                or status is DreameVacuumStatus.SLEEPING
-                or status is DreameVacuumStatus.IDLE
-                or status is DreameVacuumStatus.STANDBY
+                status is XiaomiVacuumStatus.PAUSED
+                or status is XiaomiVacuumStatus.SLEEPING
+                or status is XiaomiVacuumStatus.IDLE
+                or status is XiaomiVacuumStatus.STANDBY
             )
             or self.cleaning_paused
         )
@@ -2943,7 +3035,7 @@ class DreameVacuumDeviceStatus:
     @property
     def active(self) -> bool:
         """Returns true when device is moving or not sleeping."""
-        return self.status is DreameVacuumStatus.STANDBY or self.running
+        return self.status is XiaomiVacuumStatus.STANDBY or self.running
 
     @property
     def running(self) -> bool:
@@ -2952,41 +3044,41 @@ class DreameVacuumDeviceStatus:
         return bool(
             not self.docked
             and (
-                status is DreameVacuumStatus.CLEANING
-                or status is DreameVacuumStatus.BACK_HOME
-                or status is DreameVacuumStatus.PART_CLEANING
-                or status is DreameVacuumStatus.FOLLOW_WALL
-                or status is DreameVacuumStatus.REMOTE_CONTROL
-                or status is DreameVacuumStatus.SEGMENT_CLEANING
-                or status is DreameVacuumStatus.ZONE_CLEANING
-                or status is DreameVacuumStatus.SPOT_CLEANING
-                or status is DreameVacuumStatus.PART_CLEANING
-                or status is DreameVacuumStatus.FAST_MAPPING
-                or status is DreameVacuumStatus.MONITOR_CRUISE
-                or status is DreameVacuumStatus.MONITOR_SPOT
-                or status is DreameVacuumStatus.SUMMON_CLEAN
+                status is XiaomiVacuumStatus.CLEANING
+                or status is XiaomiVacuumStatus.BACK_HOME
+                or status is XiaomiVacuumStatus.PART_CLEANING
+                or status is XiaomiVacuumStatus.FOLLOW_WALL
+                or status is XiaomiVacuumStatus.REMOTE_CONTROL
+                or status is XiaomiVacuumStatus.SEGMENT_CLEANING
+                or status is XiaomiVacuumStatus.ZONE_CLEANING
+                or status is XiaomiVacuumStatus.SPOT_CLEANING
+                or status is XiaomiVacuumStatus.PART_CLEANING
+                or status is XiaomiVacuumStatus.FAST_MAPPING
+                or status is XiaomiVacuumStatus.MONITOR_CRUISE
+                or status is XiaomiVacuumStatus.MONITOR_SPOT
+                or status is XiaomiVacuumStatus.SUMMON_CLEAN
             )
         )
 
     @property
     def auto_emptying(self) -> bool:
         """Returns true when device is auto emptying."""
-        return bool(self.auto_empty_status is DreameVacuumAutoEmptyStatus.ACTIVE)
+        return bool(self.auto_empty_status is XiaomiVacuumAutoEmptyStatus.ACTIVE)
 
     @property
     def auto_emptying_not_performed(self) -> bool:
         """Returns true when auto emptying is not performed due to DND settings."""
-        return bool(self.auto_empty_status is DreameVacuumAutoEmptyStatus.NOT_PERFORMED)
+        return bool(self.auto_empty_status is XiaomiVacuumAutoEmptyStatus.NOT_PERFORMED)
 
     @property
     def customized_cleaning(self) -> bool:
         """Returns true when customized cleaning feature is enabled."""
-        return bool(self._get_property(DreameVacuumProperty.CUSTOMIZED_CLEANING) and self.has_saved_map)
+        return bool(self._get_property(XiaomiVacuumProperty.CUSTOMIZED_CLEANING) and self.has_saved_map)
 
     @property
     def multi_map(self) -> bool:
         """Returns true when multi floor map feature is enabled."""
-        return bool(self._get_property(DreameVacuumProperty.MULTI_FLOOR_MAP))
+        return bool(self._get_property(XiaomiVacuumProperty.MULTI_FLOOR_MAP))
 
     @property
     def last_cleaning_time(self) -> datetime | None:
@@ -3028,8 +3120,8 @@ class DreameVacuumDeviceStatus:
         return bool(
             self.self_wash_base_available
             and (
-                self.self_wash_base_status is DreameVacuumSelfWashBaseStatus.WASHING
-                or self.self_wash_base_status is DreameVacuumSelfWashBaseStatus.CLEAN_ADD_WATER
+                self.self_wash_base_status is XiaomiVacuumSelfWashBaseStatus.WASHING
+                or self.self_wash_base_status is XiaomiVacuumSelfWashBaseStatus.CLEAN_ADD_WATER
             )
         )
 
@@ -3037,14 +3129,14 @@ class DreameVacuumDeviceStatus:
     def drying(self) -> bool:
         """Returns true the when device is currently performing mop drying."""
         return bool(
-            self.self_wash_base_available and self.self_wash_base_status is DreameVacuumSelfWashBaseStatus.DRYING
+            self.self_wash_base_available and self.self_wash_base_status is XiaomiVacuumSelfWashBaseStatus.DRYING
         )
 
     @property
     def washing_paused(self) -> bool:
         """Returns true when mop washing paused."""
         return bool(
-            self.self_wash_base_available and self.self_wash_base_status is DreameVacuumSelfWashBaseStatus.PAUSED
+            self.self_wash_base_available and self.self_wash_base_status is XiaomiVacuumSelfWashBaseStatus.PAUSED
         )
 
     @property
@@ -3052,8 +3144,8 @@ class DreameVacuumDeviceStatus:
         """Returns true when the device returning to self-wash base to wash or dry its mop."""
         return bool(
             self.self_wash_base_available
-            and self.self_wash_base_status is DreameVacuumSelfWashBaseStatus.RETURNING
-            and (self.state == DreameVacuumState.RETURNING or self.state == DreameVacuumState.RETURNING_WASHING)
+            and self.self_wash_base_status is XiaomiVacuumSelfWashBaseStatus.RETURNING
+            and (self.state == XiaomiVacuumState.RETURNING or self.state == XiaomiVacuumState.RETURNING_WASHING)
         )
 
     @property
@@ -3061,8 +3153,8 @@ class DreameVacuumDeviceStatus:
         """Returns true when the device returning to self-wash base to wash or dry its mop."""
         return bool(
             self.self_wash_base_available
-            and self.self_wash_base_status is DreameVacuumSelfWashBaseStatus.RETURNING
-            and self.state == DreameVacuumState.PAUSED
+            and self.self_wash_base_status is XiaomiVacuumSelfWashBaseStatus.RETURNING
+            and self.state == XiaomiVacuumState.PAUSED
         )
 
     @property
@@ -3104,57 +3196,57 @@ class DreameVacuumDeviceStatus:
     @property
     def main_brush_life(self) -> int:
         """Returns main brush remaining life in percent."""
-        return self._get_property(DreameVacuumProperty.MAIN_BRUSH_LEFT)
+        return self._get_property(XiaomiVacuumProperty.MAIN_BRUSH_LEFT)
 
     @property
     def side_brush_life(self) -> int:
         """Returns side brush remaining life in percent."""
-        return self._get_property(DreameVacuumProperty.SIDE_BRUSH_LEFT)
+        return self._get_property(XiaomiVacuumProperty.SIDE_BRUSH_LEFT)
 
     @property
     def filter_life(self) -> int:
         """Returns filter remaining life in percent."""
-        return self._get_property(DreameVacuumProperty.FILTER_LEFT)
+        return self._get_property(XiaomiVacuumProperty.FILTER_LEFT)
 
     @property
     def sensor_dirty_life(self) -> int:
         """Returns sensor clean remaining life in percent."""
-        return self._get_property(DreameVacuumProperty.SENSOR_DIRTY_LEFT)
+        return self._get_property(XiaomiVacuumProperty.SENSOR_DIRTY_LEFT)
 
     @property
     def secondary_filter_life(self) -> int:
         """Returns secondary filter remaining life in percent."""
-        return self._get_property(DreameVacuumProperty.SECONDARY_FILTER_LEFT)
+        return self._get_property(XiaomiVacuumProperty.SECONDARY_FILTER_LEFT)
 
     @property
     def mop_life(self) -> int:
         """Returns mop remaining life in percent."""
-        return self._get_property(DreameVacuumProperty.MOP_PAD_LEFT)
+        return self._get_property(XiaomiVacuumProperty.MOP_PAD_LEFT)
 
     @property
     def silver_ion_life(self) -> int:
         """Returns silver-ion life in percent."""
-        return self._get_property(DreameVacuumProperty.SILVER_ION_LEFT)
+        return self._get_property(XiaomiVacuumProperty.SILVER_ION_LEFT)
 
     @property
     def detergent_life(self) -> int:
         """Returns detergent life in percent."""
-        return self._get_property(DreameVacuumProperty.DETERGENT_LEFT)
+        return self._get_property(XiaomiVacuumProperty.DETERGENT_LEFT)
 
     @property
     def dnd_enabled(self) -> bool:
         """Returns DND is enabled."""
-        return bool(self._get_property(DreameVacuumProperty.DND))
+        return bool(self._get_property(XiaomiVacuumProperty.DND))
 
     @property
     def dnd_start(self) -> str:
         """Returns DND start time."""
-        return self._get_property(DreameVacuumProperty.DND_START)
+        return self._get_property(XiaomiVacuumProperty.DND_START)
 
     @property
     def dnd_end(self) -> str:
         """Returns DND end time."""
-        return self._get_property(DreameVacuumProperty.DND_END)
+        return self._get_property(XiaomiVacuumProperty.DND_END)
 
     @property
     def custom_order(self) -> bool:
@@ -3305,8 +3397,8 @@ class DreameVacuumDeviceStatus:
         if self._device.cleanup_completed:
             attributes.update(
                 {
-                    ATTR_CLEANED_AREA: self._get_property(DreameVacuumProperty.CLEANED_AREA),
-                    ATTR_CLEANING_TIME: self._get_property(DreameVacuumProperty.CLEANING_TIME),
+                    ATTR_CLEANED_AREA: self._get_property(XiaomiVacuumProperty.CLEANED_AREA),
+                    ATTR_CLEANING_TIME: self._get_property(XiaomiVacuumProperty.CLEANING_TIME),
                     ATTR_COMPLETED: True,
                 }
             )
@@ -3327,42 +3419,42 @@ class DreameVacuumDeviceStatus:
     def attributes(self) -> dict[str, Any] | None:
         """Return the attributes of the device."""
         properties = [
-            DreameVacuumProperty.CLEANING_MODE,
-            DreameVacuumProperty.TIGHT_MOPPING,
-            DreameVacuumProperty.ERROR,
-            DreameVacuumProperty.CLEANING_TIME,
-            DreameVacuumProperty.CLEANED_AREA,
-            DreameVacuumProperty.VOICE_PACKET_ID,
-            DreameVacuumProperty.TIMEZONE,
-            DreameVacuumProperty.MAIN_BRUSH_TIME_LEFT,
-            DreameVacuumProperty.MAIN_BRUSH_LEFT,
-            DreameVacuumProperty.SIDE_BRUSH_TIME_LEFT,
-            DreameVacuumProperty.SIDE_BRUSH_LEFT,
-            DreameVacuumProperty.FILTER_LEFT,
-            DreameVacuumProperty.FILTER_TIME_LEFT,
-            DreameVacuumProperty.SENSOR_DIRTY_LEFT,
-            DreameVacuumProperty.SENSOR_DIRTY_TIME_LEFT,
-            DreameVacuumProperty.SECONDARY_FILTER_LEFT,
-            DreameVacuumProperty.SECONDARY_FILTER_TIME_LEFT,
-            DreameVacuumProperty.MOP_PAD_LEFT,
-            DreameVacuumProperty.MOP_PAD_TIME_LEFT,
-            DreameVacuumProperty.SILVER_ION_LEFT,
-            DreameVacuumProperty.SILVER_ION_TIME_LEFT,
-            DreameVacuumProperty.DETERGENT_LEFT,
-            DreameVacuumProperty.DETERGENT_TIME_LEFT,
-            DreameVacuumProperty.TOTAL_CLEANED_AREA,
-            DreameVacuumProperty.TOTAL_CLEANING_TIME,
-            DreameVacuumProperty.CLEANING_COUNT,
-            DreameVacuumProperty.DND_START,
-            DreameVacuumProperty.DND_END,
-            DreameVacuumProperty.CUSTOMIZED_CLEANING,
-            DreameVacuumProperty.SERIAL_NUMBER,
+            XiaomiVacuumProperty.CLEANING_MODE,
+            XiaomiVacuumProperty.TIGHT_MOPPING,
+            XiaomiVacuumProperty.ERROR,
+            XiaomiVacuumProperty.CLEANING_TIME,
+            XiaomiVacuumProperty.CLEANED_AREA,
+            XiaomiVacuumProperty.VOICE_PACKET_ID,
+            XiaomiVacuumProperty.TIMEZONE,
+            XiaomiVacuumProperty.MAIN_BRUSH_TIME_LEFT,
+            XiaomiVacuumProperty.MAIN_BRUSH_LEFT,
+            XiaomiVacuumProperty.SIDE_BRUSH_TIME_LEFT,
+            XiaomiVacuumProperty.SIDE_BRUSH_LEFT,
+            XiaomiVacuumProperty.FILTER_LEFT,
+            XiaomiVacuumProperty.FILTER_TIME_LEFT,
+            XiaomiVacuumProperty.SENSOR_DIRTY_LEFT,
+            XiaomiVacuumProperty.SENSOR_DIRTY_TIME_LEFT,
+            XiaomiVacuumProperty.SECONDARY_FILTER_LEFT,
+            XiaomiVacuumProperty.SECONDARY_FILTER_TIME_LEFT,
+            XiaomiVacuumProperty.MOP_PAD_LEFT,
+            XiaomiVacuumProperty.MOP_PAD_TIME_LEFT,
+            XiaomiVacuumProperty.SILVER_ION_LEFT,
+            XiaomiVacuumProperty.SILVER_ION_TIME_LEFT,
+            XiaomiVacuumProperty.DETERGENT_LEFT,
+            XiaomiVacuumProperty.DETERGENT_TIME_LEFT,
+            XiaomiVacuumProperty.TOTAL_CLEANED_AREA,
+            XiaomiVacuumProperty.TOTAL_CLEANING_TIME,
+            XiaomiVacuumProperty.CLEANING_COUNT,
+            XiaomiVacuumProperty.DND_START,
+            XiaomiVacuumProperty.DND_END,
+            XiaomiVacuumProperty.CUSTOMIZED_CLEANING,
+            XiaomiVacuumProperty.SERIAL_NUMBER,
         ]
 
         attributes = {}
         if not self.self_wash_base_available:
             attributes[ATTR_WATER_TANK] = self.water_tank_or_mop_installed
-            properties.append(DreameVacuumProperty.WATER_VOLUME)
+            properties.append(XiaomiVacuumProperty.WATER_VOLUME)
         else:
             attributes[ATTR_MOP_PAD] = self.water_tank_or_mop_installed
             if self.started and (self.customized_cleaning and not (self.zone_cleaning or self.spot_cleaning)):
@@ -3383,20 +3475,20 @@ class DreameVacuumDeviceStatus:
                 else:
                     prop_name = prop.name.lower()
 
-                if prop is DreameVacuumProperty.ERROR:
+                if prop is XiaomiVacuumProperty.ERROR:
                     value = self.error_name.replace("_", " ").capitalize()
-                elif prop is DreameVacuumProperty.WATER_VOLUME:
+                elif prop is XiaomiVacuumProperty.WATER_VOLUME:
                     if self.started and (self.customized_cleaning and not (self.zone_cleaning or self.spot_cleaning)):
                         value = STATE_UNAVAILABLE.capitalize()
                         attributes[f"{prop_name}_list"] = []
                     else:
                         value = self.water_volume_name.capitalize()
                         attributes[f"{prop_name}_list"] = [v.capitalize() for v in self.water_volume_list.keys()]
-                elif prop is DreameVacuumProperty.CLEANING_MODE:
+                elif prop is XiaomiVacuumProperty.CLEANING_MODE:
                     value = self.cleaning_mode_name.replace("_", " ").capitalize()
-                elif prop is DreameVacuumProperty.CUSTOMIZED_CLEANING:
+                elif prop is XiaomiVacuumProperty.CUSTOMIZED_CLEANING:
                     value = self.customized_cleaning and not self.zone_cleaning and not self.spot_cleaning
-                elif prop is DreameVacuumProperty.TIGHT_MOPPING:
+                elif prop is XiaomiVacuumProperty.TIGHT_MOPPING:
                     value = "on" if value == 1 else "off"
                 attributes[prop_name] = value
 
@@ -3423,7 +3515,7 @@ class DreameVacuumDeviceStatus:
         return attributes
 
 
-class DreameVacuumDeviceInfo:
+class XiaomiVacuumDeviceInfo:
     """Container of device information."""
 
     def __init__(self, data):

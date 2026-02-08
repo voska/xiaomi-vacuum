@@ -4,8 +4,8 @@ import voluptuous as vol
 from typing import Final
 import importlib
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
-from .entity import DreameVacuumEntity
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
+from .entity import XiaomiVacuumEntity
 
 from homeassistant.helpers.importlib import async_import_module
 from homeassistant.config_entries import ConfigEntry
@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.exceptions import HomeAssistantError
-from .dreame.const import (
+from .xiaomi.const import (
     STATE_UNKNOWN,
     STATE_UNAVAILABLE,
     STATE_CLEANING,
@@ -25,10 +25,10 @@ from .dreame.const import (
 )
 from homeassistant.components.vacuum import StateVacuumEntity, VacuumEntityFeature
 
-from .dreame import (
-    DreameVacuumState,
-    DreameVacuumSuctionLevel,
-    DreameVacuumAction,
+from .xiaomi import (
+    XiaomiVacuumState,
+    XiaomiVacuumSuctionLevel,
+    XiaomiVacuumAction,
     InvalidActionException,
 )
 from .const import (
@@ -93,7 +93,7 @@ from .const import (
     CONSUMABLE_DETERGENT,
 )
 
-SUPPORT_DREAME = (
+SUPPORT_XIAOMI = (
     VacuumEntityFeature.START
     | VacuumEntityFeature.PAUSE
     | VacuumEntityFeature.STOP
@@ -108,39 +108,39 @@ SUPPORT_DREAME = (
 
 
 STATE_CODE_TO_STATE: Final = {
-    DreameVacuumState.UNKNOWN: STATE_IDLE,
-    DreameVacuumState.SWEEPING: STATE_CLEANING,
-    DreameVacuumState.IDLE: STATE_IDLE,
-    DreameVacuumState.PAUSED: STATE_PAUSED,
-    DreameVacuumState.ERROR: STATE_ERROR,
-    DreameVacuumState.RETURNING: STATE_RETURNING,
-    DreameVacuumState.CHARGING: STATE_DOCKED,
-    DreameVacuumState.MOPPING: STATE_CLEANING,
-    DreameVacuumState.DRYING: STATE_DOCKED,
-    DreameVacuumState.WASHING: STATE_CLEANING,
-    DreameVacuumState.RETURNING_WASHING: STATE_RETURNING,
-    DreameVacuumState.BUILDING: STATE_DOCKED,
-    DreameVacuumState.SWEEPING_AND_MOPPING: STATE_CLEANING,
-    DreameVacuumState.CHARGING_COMPLETED: STATE_DOCKED,
-    DreameVacuumState.UPGRADING: STATE_IDLE,
+    XiaomiVacuumState.UNKNOWN: STATE_IDLE,
+    XiaomiVacuumState.SWEEPING: STATE_CLEANING,
+    XiaomiVacuumState.IDLE: STATE_IDLE,
+    XiaomiVacuumState.PAUSED: STATE_PAUSED,
+    XiaomiVacuumState.ERROR: STATE_ERROR,
+    XiaomiVacuumState.RETURNING: STATE_RETURNING,
+    XiaomiVacuumState.CHARGING: STATE_DOCKED,
+    XiaomiVacuumState.MOPPING: STATE_CLEANING,
+    XiaomiVacuumState.DRYING: STATE_DOCKED,
+    XiaomiVacuumState.WASHING: STATE_CLEANING,
+    XiaomiVacuumState.RETURNING_WASHING: STATE_RETURNING,
+    XiaomiVacuumState.BUILDING: STATE_DOCKED,
+    XiaomiVacuumState.SWEEPING_AND_MOPPING: STATE_CLEANING,
+    XiaomiVacuumState.CHARGING_COMPLETED: STATE_DOCKED,
+    XiaomiVacuumState.UPGRADING: STATE_IDLE,
 }
 
 SUCTION_LEVEL_TO_FAN_SPEED: Final = {
-    DreameVacuumSuctionLevel.QUIET: FAN_SPEED_SILENT,
-    DreameVacuumSuctionLevel.STANDARD: FAN_SPEED_STANDARD,
-    DreameVacuumSuctionLevel.STRONG: FAN_SPEED_STRONG,
-    DreameVacuumSuctionLevel.TURBO: FAN_SPEED_TURBO,
+    XiaomiVacuumSuctionLevel.QUIET: FAN_SPEED_SILENT,
+    XiaomiVacuumSuctionLevel.STANDARD: FAN_SPEED_STANDARD,
+    XiaomiVacuumSuctionLevel.STRONG: FAN_SPEED_STRONG,
+    XiaomiVacuumSuctionLevel.TURBO: FAN_SPEED_TURBO,
 }
 
 CONSUMABLE_RESET_ACTION = {
-    CONSUMABLE_MAIN_BRUSH: DreameVacuumAction.RESET_MAIN_BRUSH,
-    CONSUMABLE_SIDE_BRUSH: DreameVacuumAction.RESET_SIDE_BRUSH,
-    CONSUMABLE_FILTER: DreameVacuumAction.RESET_FILTER,
-    CONSUMABLE_SECONDARY_FILTER: DreameVacuumAction.RESET_SECONDARY_FILTER,
-    CONSUMABLE_SENSOR: DreameVacuumAction.RESET_SENSOR,
-    CONSUMABLE_MOP_PAD: DreameVacuumAction.RESET_MOP_PAD,
-    CONSUMABLE_SILVER_ION: DreameVacuumAction.RESET_SILVER_ION,
-    CONSUMABLE_DETERGENT: DreameVacuumAction.RESET_DETERGENT,
+    CONSUMABLE_MAIN_BRUSH: XiaomiVacuumAction.RESET_MAIN_BRUSH,
+    CONSUMABLE_SIDE_BRUSH: XiaomiVacuumAction.RESET_SIDE_BRUSH,
+    CONSUMABLE_FILTER: XiaomiVacuumAction.RESET_FILTER,
+    CONSUMABLE_SECONDARY_FILTER: XiaomiVacuumAction.RESET_SECONDARY_FILTER,
+    CONSUMABLE_SENSOR: XiaomiVacuumAction.RESET_SENSOR,
+    CONSUMABLE_MOP_PAD: XiaomiVacuumAction.RESET_MOP_PAD,
+    CONSUMABLE_SILVER_ION: XiaomiVacuumAction.RESET_SILVER_ION,
+    CONSUMABLE_DETERGENT: XiaomiVacuumAction.RESET_DETERGENT,
 }
 
 
@@ -149,15 +149,15 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up a Dreame Vacuum based on a config entry."""
-    coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up a Xiaomi Vacuum based on a config entry."""
+    coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
         SERVICE_REQUEST_MAP,
         {},
-        DreameVacuum.async_request_map.__name__,
+        XiaomiVacuum.async_request_map.__name__,
     )
 
     platform.async_register_entity_service(
@@ -165,7 +165,7 @@ async def async_setup_entry(
         {
             vol.Required(INPUT_MAP_ID): cv.positive_int,
         },
-        DreameVacuum.async_select_map.__name__,
+        XiaomiVacuum.async_select_map.__name__,
     )
 
     platform.async_register_entity_service(
@@ -173,19 +173,19 @@ async def async_setup_entry(
         {
             vol.Optional(INPUT_MAP_ID): cv.positive_int,
         },
-        DreameVacuum.async_delete_map.__name__,
+        XiaomiVacuum.async_delete_map.__name__,
     )
 
     platform.async_register_entity_service(
         SERVICE_SAVE_TEMPORARY_MAP,
         {},
-        DreameVacuum.async_save_temporary_map.__name__,
+        XiaomiVacuum.async_save_temporary_map.__name__,
     )
 
     platform.async_register_entity_service(
         SERVICE_DISCARD_TEMPORARY_MAP,
         {},
-        DreameVacuum.async_discard_temporary_map.__name__,
+        XiaomiVacuum.async_discard_temporary_map.__name__,
     )
 
     platform.async_register_entity_service(
@@ -193,7 +193,7 @@ async def async_setup_entry(
         {
             vol.Optional(INPUT_MAP_ID): cv.positive_int,
         },
-        DreameVacuum.async_replace_temporary_map.__name__,
+        XiaomiVacuum.async_replace_temporary_map.__name__,
     )
 
     platform.async_register_entity_service(
@@ -221,7 +221,7 @@ async def async_setup_entry(
             ),
             vol.Optional(INPUT_REPEATS): vol.Any(vol.Coerce(int), [vol.Coerce(int)]),
         },
-        DreameVacuum.async_clean_zone.__name__,
+        XiaomiVacuum.async_clean_zone.__name__,
     )
 
     platform.async_register_entity_service(
@@ -232,7 +232,7 @@ async def async_setup_entry(
             vol.Optional(INPUT_SUCTION_LEVEL): vol.Any(vol.Coerce(int), [vol.Coerce(int)]),
             vol.Optional(INPUT_WATER_VOLUME): vol.Any(vol.Coerce(int), [vol.Coerce(int)]),
         },
-        DreameVacuum.async_clean_segment.__name__,
+        XiaomiVacuum.async_clean_segment.__name__,
     )
 
     platform.async_register_entity_service(
@@ -243,7 +243,7 @@ async def async_setup_entry(
             vol.Optional(INPUT_SUCTION_LEVEL): vol.Any(vol.Coerce(int), [vol.Coerce(int)]),
             vol.Optional(INPUT_WATER_VOLUME): vol.Any(vol.Coerce(int), [vol.Coerce(int)]),
         },
-        DreameVacuum.async_clean_spot.__name__,
+        XiaomiVacuum.async_clean_spot.__name__,
     )
 
     platform.async_register_entity_service(
@@ -289,7 +289,7 @@ async def async_setup_entry(
                 ],
             ),
         },
-        DreameVacuum.async_set_restricted_zone.__name__,
+        XiaomiVacuum.async_set_restricted_zone.__name__,
     )
 
     platform.async_register_entity_service(
@@ -298,7 +298,7 @@ async def async_setup_entry(
             vol.Required(INPUT_VELOCITY): vol.All(vol.Coerce(int), vol.Clamp(min=-600, max=600)),
             vol.Required(INPUT_ROTATION): vol.All(vol.Coerce(int), vol.Clamp(min=-360, max=360)),
         },
-        DreameVacuum.async_remote_control_move_step.__name__,
+        XiaomiVacuum.async_remote_control_move_step.__name__,
     )
 
     platform.async_register_entity_service(
@@ -309,7 +309,7 @@ async def async_setup_entry(
             vol.Required(INPUT_MD5): cv.string,
             vol.Required(INPUT_SIZE): cv.positive_int,
         },
-        DreameVacuum.async_install_voice_pack.__name__,
+        XiaomiVacuum.async_install_voice_pack.__name__,
     )
 
     platform.async_register_entity_service(
@@ -318,7 +318,7 @@ async def async_setup_entry(
             vol.Required(INPUT_MAP_ID): cv.positive_int,
             vol.Required(INPUT_MAP_NAME): cv.string,
         },
-        DreameVacuum.async_rename_map.__name__,
+        XiaomiVacuum.async_rename_map.__name__,
     )
 
     platform.async_register_entity_service(
@@ -327,7 +327,7 @@ async def async_setup_entry(
             vol.Optional(INPUT_MAP_ID): cv.positive_int,
             vol.Required(INPUT_SEGMENTS_ARRAY): vol.All([vol.Coerce(int)]),
         },
-        DreameVacuum.async_merge_segments.__name__,
+        XiaomiVacuum.async_merge_segments.__name__,
     )
 
     platform.async_register_entity_service(
@@ -347,7 +347,7 @@ async def async_setup_entry(
                 ),
             ),
         },
-        DreameVacuum.async_split_segments.__name__,
+        XiaomiVacuum.async_split_segments.__name__,
     )
 
     platform.async_register_entity_service(
@@ -356,7 +356,7 @@ async def async_setup_entry(
             vol.Required(INPUT_SEGMENT_ID): cv.positive_int,
             vol.Required(INPUT_SEGMENT_NAME): cv.string,
         },
-        DreameVacuum.async_rename_segment.__name__,
+        XiaomiVacuum.async_rename_segment.__name__,
     )
 
     platform.async_register_entity_service(
@@ -364,7 +364,7 @@ async def async_setup_entry(
         {
             vol.Required(INPUT_CLEANING_SEQUENCE): cv.ensure_list,
         },
-        DreameVacuum.async_set_cleaning_sequence.__name__,
+        XiaomiVacuum.async_set_cleaning_sequence.__name__,
     )
 
     platform.async_register_entity_service(
@@ -375,7 +375,7 @@ async def async_setup_entry(
             vol.Required(INPUT_WATER_VOLUME): cv.ensure_list,
             vol.Required(INPUT_REPEATS): cv.ensure_list,
         },
-        DreameVacuum.async_set_custom_cleaning.__name__,
+        XiaomiVacuum.async_set_custom_cleaning.__name__,
     )
 
     platform.async_register_entity_service(
@@ -385,7 +385,7 @@ async def async_setup_entry(
             vol.Optional(INPUT_DND_START): cv.string,
             vol.Optional(INPUT_DND_END): cv.string,
         },
-        DreameVacuum.async_set_dnd.__name__,
+        XiaomiVacuum.async_set_dnd.__name__,
     )
 
     platform.async_register_entity_service(
@@ -404,7 +404,7 @@ async def async_setup_entry(
                 ]
             ),
         },
-        DreameVacuum.async_reset_consumable.__name__,
+        XiaomiVacuum.async_reset_consumable.__name__,
     )
 
     activity_class = None
@@ -415,17 +415,17 @@ async def async_setup_entry(
     except:
         pass
 
-    async_add_entities([DreameVacuum(coordinator, activity_class)])
+    async_add_entities([XiaomiVacuum(coordinator, activity_class)])
 
 
-class DreameVacuum(DreameVacuumEntity, StateVacuumEntity):
-    """Representation of a Dreame Vacuum cleaner robot."""
+class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
+    """Representation of a Xiaomi Vacuum cleaner robot."""
 
-    def __init__(self, coordinator: DreameVacuumDataUpdateCoordinator, activity_class) -> None:
+    def __init__(self, coordinator: XiaomiVacuumDataUpdateCoordinator, activity_class) -> None:
         """Initialize the button entity."""
         super().__init__(coordinator)
 
-        self._attr_supported_features = SUPPORT_DREAME
+        self._attr_supported_features = SUPPORT_XIAOMI
         self._attr_device_class = DOMAIN
         self._attr_name = (
             f" {coordinator.device.name}"  ## Add whitespace to display entity on top at the device configuration page
@@ -586,7 +586,7 @@ class DreameVacuum(DreameVacuumEntity, StateVacuumEntity):
             fan_speed = int(fan_speed)
 
         if isinstance(fan_speed, int):
-            if fan_speed not in DreameVacuumSuctionLevel._value2member_map_:
+            if fan_speed not in XiaomiVacuumSuctionLevel._value2member_map_:
                 raise HomeAssistantError("Invalid fan speed")
         else:
             fan_speed = fan_speed.lower()

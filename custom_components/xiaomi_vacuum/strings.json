@@ -2,18 +2,15 @@
   "config": {
     "abort": {
       "already_configured": "Device is already configured",
-      "cannot_connect": "Failed to connect.",
-      "reauth_successful": "Reauthentication is successful"
+      "cannot_connect": "Failed to connect."
     },
     "error": {
       "cannot_connect": "Failed to connect.",
       "unsupported": "Device is not supported",
       "wrong_token": "Checksum error, wrong token",
-      "2fa_failed": "Verification failed.",
-      "wrong_captcha": "Wrong captcha.",
-      "credentials_incomplete": "Credentials incomplete, please fill in username, password and country.",
-      "login_error": "Could not login, check the credentials.",
-      "no_devices": "No supported devices found in this account on selected country.{devices}"
+      "credentials_incomplete": "Credentials incomplete, please fill in username, password and country",
+      "login_error": "Could not login to Xiaomi Miio Cloud, check the credentials.",
+      "no_devices": "No supported devices found in this Xiaomi Miio cloud account on selected country."
     },
     "step": {
       "user": {
@@ -22,14 +19,14 @@
         },
         "description": "Map feature requires cloud connection and provides automatic configuration. If you don't want to use the map feature, you can select manual configuration."
       },
-      "local": {
+      "without_map": {
         "data": {
           "host": "Host",
           "token": "Token"
         },
         "description": "You will need the 32 character API Token."
       },
-      "mi": {
+      "with_map": {
         "data": {
           "username": "Username",
           "password": "Password",
@@ -37,30 +34,12 @@
           "prefer_cloud": "Prefer cloud connection"
         },
         "description": "Log in to the Xiaomi Miio cloud."
-      },    
-      "2fa": {
-        "data": {
-          "verification_code": "Two-factor verification code"
-        },
-        "description": "## This login requires security verification\nPlease open the verification page to send the mobile/email verification code. After receiving the verification code, do not verify it on the webpage. Go back to HomeAssistant and enter it in the input box below.\n### [Send Verification Code]({url})"
-      },
-      "captcha": {
-        "data": {
-          "code": "Code"
-        },
-        "description": "## Captcha verification is required.\n![captcha](data:image/jpeg;base64,{img})"
       },
       "devices": {
         "data": {
           "devices": "Supported Devices"
         },
-        "description": "Please select the Dreame Vacuum device you want to setup."
-      },
-      "donation": {
-        "data": {
-          "donated": "Donated"
-        },
-        "description": "## Do not forget to support the project.{text}"
+        "description": "Please select the Xiaomi Vacuum device you want to setup."
       },
       "options": {
         "data": {
@@ -72,7 +51,7 @@
         }
       },
       "reauth_confirm": {
-        "description": "Dreame Vacuum integration needs to re-authenticate your account in order to update the tokens or add missing cloud credentials.",
+        "description": "Xiaomi Vacuum integration needs to re-authenticate your account in order to update the tokens or add missing cloud credentials.",
         "title": "Reauthenticate Integration"
       }
     }
@@ -86,8 +65,7 @@
           "notify": "Notification",
           "hidden_map_objects": "Hidden map objects",
           "configuration_type": "Configuration type",
-          "prefer_cloud": "Prefer cloud connection",
-          "donated": "Donated"
+          "prefer_cloud": "Prefer cloud connection"
         }
       }
     },
@@ -161,7 +139,7 @@
           "high_frequency": "High Frequency",
           "low_frequency": "Low Frequency"
         }
-      },      
+      },
       "mop_pad_swing": {
         "state": {
           "off": "Off",
@@ -805,7 +783,7 @@
       }
     },
     "vacuum_set_restricted_zone": {
-      "name": "Set Restricted Zone",
+      "name": "Set Restriced Zone",
       "description": "Define virtual walls, restricted zones, and/or no mop zones.",
       "fields": {
         "walls": {

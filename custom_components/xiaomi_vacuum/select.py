@@ -1,4 +1,4 @@
-"""Support for Dreame Vacuum selects."""
+"""Support for Xiaomi Vacuum selects."""
 
 from __future__ import annotations
 
@@ -34,145 +34,145 @@ from .const import (
     SERVICE_SELECT_LAST,
 )
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
 from .entity import (
-    DreameVacuumEntity,
-    DreameVacuumEntityDescription,
+    XiaomiVacuumEntity,
+    XiaomiVacuumEntityDescription,
 )
 
-from .dreame import (
-    DreameVacuumProperty,
-    DreameVacuumSuctionLevel,
-    DreameVacuumCleaningMode,
-    DreameVacuumWaterVolume,
-    DreameVacuumSelfCleanArea,
-    DreameVacuumMopPadHumidity,
-    DreameVacuumCarpetSensitivity,
-    DreameVacuumMopWashLevel,
-    DreameVacuumMoppingType,
+from .xiaomi import (
+    XiaomiVacuumProperty,
+    XiaomiVacuumSuctionLevel,
+    XiaomiVacuumCleaningMode,
+    XiaomiVacuumWaterVolume,
+    XiaomiVacuumSelfCleanArea,
+    XiaomiVacuumMopPadHumidity,
+    XiaomiVacuumCarpetSensitivity,
+    XiaomiVacuumMopWashLevel,
+    XiaomiVacuumMoppingType,
     SUCTION_LEVEL_CODE_TO_NAME,
     WATER_VOLUME_CODE_TO_NAME,
     MOP_PAD_HUMIDITY_CODE_TO_NAME,
 )
 
 SUCTION_LEVEL_TO_ICON = {
-    DreameVacuumSuctionLevel.QUIET: "mdi:fan-speed-1",
-    DreameVacuumSuctionLevel.STANDARD: "mdi:fan-speed-2",
-    DreameVacuumSuctionLevel.STRONG: "mdi:fan-speed-3",
-    DreameVacuumSuctionLevel.TURBO: "mdi:weather-windy",
+    XiaomiVacuumSuctionLevel.QUIET: "mdi:fan-speed-1",
+    XiaomiVacuumSuctionLevel.STANDARD: "mdi:fan-speed-2",
+    XiaomiVacuumSuctionLevel.STRONG: "mdi:fan-speed-3",
+    XiaomiVacuumSuctionLevel.TURBO: "mdi:weather-windy",
 }
 
 WATER_VOLUME_TO_ICON = {
-    DreameVacuumWaterVolume.LOW: "mdi:water-minus",
-    DreameVacuumWaterVolume.MEDIUM: "mdi:water",
-    DreameVacuumWaterVolume.HIGH: "mdi:water-plus",
+    XiaomiVacuumWaterVolume.LOW: "mdi:water-minus",
+    XiaomiVacuumWaterVolume.MEDIUM: "mdi:water",
+    XiaomiVacuumWaterVolume.HIGH: "mdi:water-plus",
 }
 
 MOP_PAD_HUMIDITY_TO_ICON = {
-    DreameVacuumMopPadHumidity.SLIGHTLY_DRY: "mdi:water-minus",
-    DreameVacuumMopPadHumidity.MOIST: "mdi:water",
-    DreameVacuumMopPadHumidity.WET: "mdi:water-plus",
+    XiaomiVacuumMopPadHumidity.SLIGHTLY_DRY: "mdi:water-minus",
+    XiaomiVacuumMopPadHumidity.MOIST: "mdi:water",
+    XiaomiVacuumMopPadHumidity.WET: "mdi:water-plus",
 }
 
 
 @dataclass
-class DreameVacuumSelectEntityDescription(DreameVacuumEntityDescription, SelectEntityDescription):
-    """Describes Dreame Vacuum Select entity."""
+class XiaomiVacuumSelectEntityDescription(XiaomiVacuumEntityDescription, SelectEntityDescription):
+    """Describes Xiaomi Vacuum Select entity."""
 
     set_fn: Callable[[object, int, int]] = None
     options: Callable[[object, object], list[str]] = None
     value_int_fn: Callable[[object, str], int] = None
 
 
-SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
-    DreameVacuumSelectEntityDescription(
-        property_key=DreameVacuumProperty.SUCTION_LEVEL,
+SELECTS: tuple[XiaomiVacuumSelectEntityDescription, ...] = (
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.SUCTION_LEVEL,
         device_class=f"{DOMAIN}__suction_level",
         icon_fn=lambda value, device: (
             "mdi:fan-off"
-            if device.status.cleaning_mode is DreameVacuumCleaningMode.MOPPING
+            if device.status.cleaning_mode is XiaomiVacuumCleaningMode.MOPPING
             else SUCTION_LEVEL_TO_ICON.get(device.status.suction_level, "mdi:fan")
         ),
         options=lambda device, segment: list(device.status.suction_level_list),
-        value_int_fn=lambda value, device: DreameVacuumSuctionLevel[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumSuctionLevel[value.upper()],
     ),
-    DreameVacuumSelectEntityDescription(
-        property_key=DreameVacuumProperty.WATER_VOLUME,
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.WATER_VOLUME,
         device_class=f"{DOMAIN}__water_volume",
         icon_fn=lambda value, device: (
             "mdi:water-off"
             if (
                 not device.status.water_tank_or_mop_installed
-                or device.status.cleaning_mode is DreameVacuumCleaningMode.SWEEPING
+                or device.status.cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING
             )
             else WATER_VOLUME_TO_ICON.get(device.status.water_volume, "mdi:water")
         ),
         options=lambda device, segment: list(device.status.water_volume_list),
-        value_int_fn=lambda value, device: DreameVacuumWaterVolume[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumWaterVolume[value.upper()],
         exists_fn=lambda description, device: bool(
             not device.status.self_wash_base_available
-            and DreameVacuumEntityDescription().exists_fn(description, device)
+            and XiaomiVacuumEntityDescription().exists_fn(description, device)
         ),
     ),
-    DreameVacuumSelectEntityDescription(
-        property_key=DreameVacuumProperty.CLEANING_MODE,
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.CLEANING_MODE,
         device_class=f"{DOMAIN}__cleaning_mode",
         icon_fn=lambda value, device: (
             "mdi:hydro-power"
-            if device.status.cleaning_mode is DreameVacuumCleaningMode.SWEEPING_AND_MOPPING
-            else "mdi:cup-water" if device.status.cleaning_mode is DreameVacuumCleaningMode.MOPPING else "mdi:broom"
+            if device.status.cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
+            else "mdi:cup-water" if device.status.cleaning_mode is XiaomiVacuumCleaningMode.MOPPING else "mdi:broom"
         ),
         options=lambda device, segment: list(device.status.cleaning_mode_list),
         value_fn=lambda value, device: device.status.cleaning_mode_name,
-        value_int_fn=lambda value, device: DreameVacuumCleaningMode[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumCleaningMode[value.upper()],
         set_fn=lambda device, map_id, value: device.set_cleaning_mode(value),
     ),
-    DreameVacuumSelectEntityDescription(
-        property_key=DreameVacuumProperty.CARPET_SENSITIVITY,
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.CARPET_SENSITIVITY,
         device_class=f"{DOMAIN}__carpet_sensitivity",
         icon="mdi:rug",
         options=lambda device, segment: list(device.status.carpet_sensitivity_list),
-        value_int_fn=lambda value, device: DreameVacuumCarpetSensitivity[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumCarpetSensitivity[value.upper()],
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSelectEntityDescription(
-        property_key=DreameVacuumProperty.AUTO_EMPTY_FREQUENCY,
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.AUTO_EMPTY_FREQUENCY,
         icon_fn=lambda value, device: f"mdi:numeric-{value[0]}-box-multiple-outline",
         options=lambda device, segment: [f"{i}{UNIT_TIMES}" for i in range(1, 4)],
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda value, device: f"{value}{UNIT_TIMES}",
         value_int_fn=lambda value, device: int(value[0]),
     ),
-    DreameVacuumSelectEntityDescription(
-        property_key=DreameVacuumProperty.DRYING_TIME,
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.DRYING_TIME,
         icon="mdi:hair-dryer",
         options=lambda device, segment: [f"{i}h" for i in range(2, 5)],
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda value, device: f"{value}h",
         value_int_fn=lambda value, device: int(value[0]),
     ),
-    DreameVacuumSelectEntityDescription(
-        property_key=DreameVacuumProperty.MOP_WASH_LEVEL,
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.MOP_WASH_LEVEL,
         device_class=f"{DOMAIN}__mop_wash_level",
         icon="mdi:water-opacity",
         options=lambda device, segment: list(device.status.mop_wash_level_list),
-        value_int_fn=lambda value, device: DreameVacuumMopWashLevel[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumMopWashLevel[value.upper()],
         entity_category=EntityCategory.CONFIG,
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="mop_pad_humidity",
         device_class=f"{DOMAIN}__mop_pad_humidity",
         icon_fn=lambda value, device: (
             "mdi:water-off"
             if (
                 not device.status.water_tank_or_mop_installed
-                or device.status.cleaning_mode is DreameVacuumCleaningMode.SWEEPING
+                or device.status.cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING
             )
             else MOP_PAD_HUMIDITY_TO_ICON.get(device.status.mop_pad_humidity, "mdi:water-percent")
         ),
         options=lambda device, segment: list(device.status.mop_pad_humidity_list),
         value_fn=lambda value, device: device.status.mop_pad_humidity_name,
-        value_int_fn=lambda value, device: DreameVacuumMopPadHumidity[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumMopPadHumidity[value.upper()],
         exists_fn=lambda description, device: device.status.self_wash_base_available,
         available_fn=lambda device: device.status.water_tank_or_mop_installed
         and not device.status.sweeping
@@ -183,14 +183,14 @@ SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
         and not device.status.started,
         set_fn=lambda device, map_id, value: device.set_mop_pad_humidity(value),
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="self_clean_area",
         device_class=f"{DOMAIN}__self_clean_area",
         icon="mdi:texture-box",
         options=lambda device, segment: list(device.status.self_clean_area_list),
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda value, device: device.status.self_clean_area_name,
-        value_int_fn=lambda value, device: DreameVacuumSelfCleanArea[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumSelfCleanArea[value.upper()],
         exists_fn=lambda description, device: device.status.self_wash_base_available,
         available_fn=lambda device: device.status.self_clean
         and not device.status.started
@@ -198,14 +198,14 @@ SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
         and not device.status.cleaning_paused,
         set_fn=lambda device, map_id, value: device.set_self_clean_area(value),
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="mopping_type",
         device_class=f"{DOMAIN}__mopping_type",
         icon="mdi:spray-bottle",
         options=lambda device, segment: list(device.status.mopping_type_list),
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda value, device: device.status.mopping_type_name,
-        value_int_fn=lambda value, device: DreameVacuumMoppingType[value.upper()],
+        value_int_fn=lambda value, device: XiaomiVacuumMoppingType[value.upper()],
         exists_fn=lambda description, device: device.status.auto_switch_settings_available
         and device.status.mopping_type is not None,
         available_fn=lambda device: not device.status.started
@@ -213,7 +213,7 @@ SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
         and not device.status.cleaning_paused,
         set_fn=lambda device, map_id, value: device.set_mopping_type(value),
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="map_rotation",
         icon="mdi:crop-rotate",
         options=lambda device, segment: ["0", "90", "180", "270"],
@@ -232,7 +232,7 @@ SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
         ),
         set_fn=lambda device, map_id, value: device.set_map_rotation(device.status.selected_map.map_id, value),
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="selected_map",
         icon="mdi:map-check",
         options=lambda device, segment: [v.map_name for k, v in device.status.map_data_list.items()],
@@ -264,8 +264,8 @@ SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
     ),
 )
 
-SEGMENT_SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
-    DreameVacuumSelectEntityDescription(
+SEGMENT_SELECTS: tuple[XiaomiVacuumSelectEntityDescription, ...] = (
+    XiaomiVacuumSelectEntityDescription(
         key="suction_level",
         device_class=f"{DOMAIN}__suction_level",
         icon_fn=lambda value, segment: (
@@ -280,11 +280,11 @@ SEGMENT_SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
             and not device.status.fast_mapping
         ),
         value_fn=lambda device, segment: SUCTION_LEVEL_CODE_TO_NAME.get(segment.suction_level, STATE_UNKNOWN),
-        value_int_fn=lambda value, self: DreameVacuumSuctionLevel[value.upper()],
+        value_int_fn=lambda value, self: XiaomiVacuumSuctionLevel[value.upper()],
         set_fn=lambda device, segment_id, value: device.set_segment_suction_level(segment_id, value),
         exists_fn=lambda description, device: device.status.customized_cleaning_available,
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="water_volume",
         device_class=f"{DOMAIN}__water_volume",
         icon_fn=lambda value, segment: (
@@ -299,12 +299,12 @@ SEGMENT_SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
             and not device.status.fast_mapping
         ),
         value_fn=lambda device, segment: WATER_VOLUME_CODE_TO_NAME.get(segment.water_volume, STATE_UNKNOWN),
-        value_int_fn=lambda value, self: DreameVacuumWaterVolume[value.upper()],
+        value_int_fn=lambda value, self: XiaomiVacuumWaterVolume[value.upper()],
         set_fn=lambda device, segment_id, value: device.set_segment_water_volume(segment_id, value),
         exists_fn=lambda description, device: device.status.customized_cleaning_available
         and not device.status.self_wash_base_available,
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="mop_pad_humidity",
         device_class=f"{DOMAIN}__mop_pad_humidity",
         icon_fn=lambda value, segment: (
@@ -319,12 +319,12 @@ SEGMENT_SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
             and not device.status.fast_mapping
         ),
         value_fn=lambda device, segment: MOP_PAD_HUMIDITY_CODE_TO_NAME.get(segment.mop_pad_humidity, STATE_UNKNOWN),
-        value_int_fn=lambda value, self: DreameVacuumMopPadHumidity[value.upper()],
+        value_int_fn=lambda value, self: XiaomiVacuumMopPadHumidity[value.upper()],
         set_fn=lambda device, segment_id, value: device.set_segment_mop_pad_humidity(segment_id, value),
         exists_fn=lambda description, device: device.status.customized_cleaning_available
         and device.status.self_wash_base_available,
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="cleaning_times",
         icon_fn=lambda value, segment: (
             "mdi:home-floor-" + str(segment.cleaning_times)
@@ -345,7 +345,7 @@ SEGMENT_SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
         set_fn=lambda device, segment_id, value: device.set_segment_cleaning_times(segment_id, value),
         exists_fn=lambda description, device: device.status.customized_cleaning_available,
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         key="order",
         options=lambda device, segment: (
             [str(i) for i in range(1, len(device.status.segments.values()) + 1)]
@@ -365,7 +365,7 @@ SEGMENT_SELECTS: tuple[DreameVacuumSelectEntityDescription, ...] = (
         set_fn=lambda device, segment_id, value: device.set_segment_order(segment_id, value) if value > 0 else None,
         exists_fn=lambda description, device: device.status.customized_cleaning_available,
     ),
-    DreameVacuumSelectEntityDescription(
+    XiaomiVacuumSelectEntityDescription(
         name="",
         key="name",
         options=lambda device, segment: list(segment.name_list(device.status.segments)),
@@ -395,10 +395,10 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Dreame Vacuum select based on a config entry."""
-    coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Xiaomi Vacuum select based on a config entry."""
+    coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        DreameVacuumSelectEntity(coordinator, description)
+        XiaomiVacuumSelectEntity(coordinator, description)
         for description in SELECTS
         if description.exists_fn(description, coordinator.device)
     )
@@ -406,15 +406,15 @@ async def async_setup_entry(
     platform.async_register_entity_service(
         SERVICE_SELECT_NEXT,
         {vol.Optional(INPUT_CYCLE, default=True): bool},
-        DreameVacuumSelectEntity.async_next.__name__,
+        XiaomiVacuumSelectEntity.async_next.__name__,
     )
     platform.async_register_entity_service(
         SERVICE_SELECT_PREVIOUS,
         {vol.Optional(INPUT_CYCLE, default=True): bool},
-        DreameVacuumSelectEntity.async_previous.__name__,
+        XiaomiVacuumSelectEntity.async_previous.__name__,
     )
-    platform.async_register_entity_service(SERVICE_SELECT_FIRST, {}, DreameVacuumSelectEntity.async_first.__name__)
-    platform.async_register_entity_service(SERVICE_SELECT_LAST, {}, DreameVacuumSelectEntity.async_last.__name__)
+    platform.async_register_entity_service(SERVICE_SELECT_FIRST, {}, XiaomiVacuumSelectEntity.async_first.__name__)
+    platform.async_register_entity_service(SERVICE_SELECT_LAST, {}, XiaomiVacuumSelectEntity.async_last.__name__)
 
     update_segment_selects = partial(async_update_segment_selects, coordinator, {}, async_add_entities)
     coordinator.async_add_listener(update_segment_selects)
@@ -423,8 +423,8 @@ async def async_setup_entry(
 
 @callback
 def async_update_segment_selects(
-    coordinator: DreameVacuumDataUpdateCoordinator,
-    current: dict[str, list[DreameVacuumSegmentSelectEntity]],
+    coordinator: XiaomiVacuumDataUpdateCoordinator,
+    current: dict[str, list[XiaomiVacuumSegmentSelectEntity]],
     async_add_entities,
 ) -> None:
     new_ids = []
@@ -443,7 +443,7 @@ def async_update_segment_selects(
     new_entities = []
     for segment_id in new_ids - current_ids:
         current[segment_id] = [
-            DreameVacuumSegmentSelectEntity(coordinator, description, segment_id)
+            XiaomiVacuumSegmentSelectEntity(coordinator, description, segment_id)
             for description in SEGMENT_SELECTS
             if description.exists_fn(description, coordinator.device)
         ]
@@ -455,8 +455,8 @@ def async_update_segment_selects(
 
 def async_remove_segment_selects(
     segment_id: str,
-    coordinator: DreameVacuumDataUpdateCoordinator,
-    current: dict[str, DreameVacuumSegmentSelectEntity],
+    coordinator: XiaomiVacuumDataUpdateCoordinator,
+    current: dict[str, XiaomiVacuumSegmentSelectEntity],
 ) -> None:
     registry = entity_registry.async_get(coordinator.hass)
     entities = current[segment_id]
@@ -466,15 +466,15 @@ def async_remove_segment_selects(
     del current[segment_id]
 
 
-class DreameVacuumSelectEntity(DreameVacuumEntity, SelectEntity):
-    """Defines a Dreame Vacuum select."""
+class XiaomiVacuumSelectEntity(XiaomiVacuumEntity, SelectEntity):
+    """Defines a Xiaomi Vacuum select."""
 
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
         description: SelectEntityDescription,
     ) -> None:
-        """Initialize Dreame Vacuum select."""
+        """Initialize Xiaomi Vacuum select."""
         super().__init__(coordinator, description)
         if description.property_key is not None and description.value_fn is None:
             prop = f"{description.property_key.name.lower()}_name"
@@ -567,16 +567,16 @@ class DreameVacuumSelectEntity(DreameVacuumEntity, SelectEntity):
             )
 
 
-class DreameVacuumSegmentSelectEntity(DreameVacuumEntity, SelectEntity):
-    """Defines a Dreame Vacuum Segment select."""
+class XiaomiVacuumSegmentSelectEntity(XiaomiVacuumEntity, SelectEntity):
+    """Defines a Xiaomi Vacuum Segment select."""
 
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
-        description: DreameVacuumSelectEntityDescription,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
+        description: XiaomiVacuumSelectEntityDescription,
         segment_id: int,
     ) -> None:
-        """Initialize Dreame Vacuum Segment Select."""
+        """Initialize Xiaomi Vacuum Segment Select."""
         self.segment_id = segment_id
         self.segment = None
         self.segments = None
@@ -675,7 +675,7 @@ class DreameVacuumSegmentSelectEntity(DreameVacuumEntity, SelectEntity):
         await self.async_offset_index(-1, cycle)
 
     async def async_select_option(self, option: str) -> None:
-        """Set the Dreame Vacuum Segment Select value."""
+        """Set the Xiaomi Vacuum Segment Select value."""
         if not self.available:
             raise HomeAssistantError("Entity unavailable")
 
@@ -715,6 +715,6 @@ class DreameVacuumSegmentSelectEntity(DreameVacuumEntity, SelectEntity):
 
     @property
     def native_value(self) -> str | None:
-        """Return the current Dreame Vacuum number value."""
+        """Return the current Xiaomi Vacuum number value."""
         if self.segment:
             return self.entity_description.value_fn(self.device, self.segment)

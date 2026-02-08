@@ -22,14 +22,14 @@ from typing import Optional, Tuple
 from functools import cmp_to_key
 from threading import Timer
 from .resources import *
-from .protocol import DreameVacuumProtocol
+from .protocol import XiaomiVacuumProtocol
 from .exceptions import DeviceUpdateFailedException
 from .types import (
     PIID,
     DIID,
-    DreameVacuumProperty,
-    DreameVacuumAction,
-    DreameVacuumActionMapping,
+    XiaomiVacuumProperty,
+    XiaomiVacuumAction,
+    XiaomiVacuumActionMapping,
     ObstacleType,
     PathType,
     Point,
@@ -120,8 +120,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class DreameMapVacuumMapManager:
-    def __init__(self, _protocol: DreameVacuumProtocol) -> None:
+class XiaomiMapVacuumMapManager:
+    def __init__(self, _protocol: XiaomiVacuumProtocol) -> None:
         self._map_list_object_name: str = None
         self._map_list_md5: str = None
         self._recovery_map_list_object_name: str = None
@@ -140,8 +140,8 @@ class DreameMapVacuumMapManager:
         self._init_data()
 
         self._protocol = _protocol
-        self.editor = DreameMapVacuumMapEditor(self)
-        self.optimizer = DreameVacuumMapOptimizer()
+        self.editor = XiaomiMapVacuumMapEditor(self)
+        self.optimizer = XiaomiVacuumMapOptimizer()
 
     def _init_data(self) -> None:
         self._map_data: MapData = None
@@ -192,7 +192,7 @@ class DreameMapVacuumMapManager:
             self._latest_object_name_time = request_start_time
 
         map_data_result = self._protocol.cloud.get_device_property(
-            DIID(DreameVacuumProperty.MAP_DATA), 20, self._latest_map_data_time
+            DIID(XiaomiVacuumProperty.MAP_DATA), 20, self._latest_map_data_time
         )
 
         if not self._protocol.cloud.connected:
@@ -209,7 +209,7 @@ class DreameMapVacuumMapManager:
             map_data_result = []
 
         object_name_result = self._protocol.cloud.get_device_property(
-            DIID(DreameVacuumProperty.OBJECT_NAME), 1, self._latest_object_name_time
+            DIID(XiaomiVacuumProperty.OBJECT_NAME), 1, self._latest_object_name_time
         )
         if object_name_result is None:
             _LOGGER.warn("Getting object_name from cloud failed")
@@ -288,14 +288,14 @@ class DreameMapVacuumMapManager:
 
         payload = [
             {
-                "piid": PIID(DreameVacuumProperty.FRAME_INFO),
+                "piid": PIID(XiaomiVacuumProperty.FRAME_INFO),
                 MAP_PARAMETER_VALUE: str(json.dumps(parameters, separators=(",", ":"))).replace(" ", ""),
             }
         ]
 
         try:
             _LOGGER.info("Request map from device %s", payload)
-            mapping = DreameVacuumActionMapping[DreameVacuumAction.REQUEST_MAP]
+            mapping = XiaomiVacuumActionMapping[XiaomiVacuumAction.REQUEST_MAP]
             return self._protocol.action(mapping["siid"], mapping["aiid"], payload, 0)
         except Exception as ex:
             _LOGGER.warning("Send request map failed: %s", ex)
@@ -325,18 +325,18 @@ class DreameMapVacuumMapManager:
                 value = prop[MAP_PARAMETER_VALUE]
                 if value != "":
                     piid = prop["piid"]
-                    if piid == PIID(DreameVacuumProperty.OBJECT_NAME):
+                    if piid == PIID(XiaomiVacuumProperty.OBJECT_NAME):
                         has_map = True
                         object_name = value
-                    elif piid == PIID(DreameVacuumProperty.MAP_DATA):
+                    elif piid == PIID(XiaomiVacuumProperty.MAP_DATA):
                         has_map = True
                         raw_map_data = value
-                    elif piid == PIID(DreameVacuumProperty.ROBOT_TIME):
+                    elif piid == PIID(XiaomiVacuumProperty.ROBOT_TIME):
                         self._last_robot_time = int(value)
                         if start_time is None:
                             self._map_request_time = self._last_robot_time
                             self._map_request_count = 1
-                    elif piid == PIID(DreameVacuumProperty.OLD_MAP_DATA):
+                    elif piid == PIID(XiaomiVacuumProperty.OLD_MAP_DATA):
                         if not has_map:
                             values = value.split(",")
                             if values[0] == "0":
@@ -416,11 +416,11 @@ class DreameMapVacuumMapManager:
                 value = prop[MAP_PARAMETER_VALUE]
                 if value != "":
                     piid = prop["piid"]
-                    if piid == PIID(DreameVacuumProperty.OBJECT_NAME):
+                    if piid == PIID(XiaomiVacuumProperty.OBJECT_NAME):
                         object_name = value
-                    elif piid == PIID(DreameVacuumProperty.MAP_DATA):
+                    elif piid == PIID(XiaomiVacuumProperty.MAP_DATA):
                         raw_map_data = value
-                    elif piid == PIID(DreameVacuumProperty.ROBOT_TIME):
+                    elif piid == PIID(XiaomiVacuumProperty.ROBOT_TIME):
                         timestamp = int(value)
 
             if object_name:
@@ -550,7 +550,7 @@ class DreameMapVacuumMapManager:
         if self._protocol.cloud.logged_in:
             if object_name is None or object_name == "":
                 _LOGGER.info("Get object name from cloud")
-                object_name_result = self._protocol.cloud.get_device_property(DIID(DreameVacuumProperty.OBJECT_NAME))
+                object_name_result = self._protocol.cloud.get_device_property(DIID(XiaomiVacuumProperty.OBJECT_NAME))
                 if object_name_result:
                     object_name_result = json.loads(object_name_result[0][MAP_PARAMETER_VALUE])
                     object_name = object_name_result[0]
@@ -591,7 +591,7 @@ class DreameMapVacuumMapManager:
         return url
 
     def _decode_map_partial(self, raw_map, timestamp=None, key=None) -> MapDataPartial | None:
-        partial_map = DreameVacuumMapDecoder.decode_map_partial(raw_map, self._aes_iv, key)
+        partial_map = XiaomiVacuumMapDecoder.decode_map_partial(raw_map, self._aes_iv, key)
         if partial_map is not None:
             # After restart or unsuccessful start robot returns timestamp_ms as uptime and that messes up with the latest map/frame id detection.
             # I could not figure out how app handles with this issue but i have added this code to update time stamp as request/object time.
@@ -704,7 +704,7 @@ class DreameMapVacuumMapManager:
                     copy.deepcopy(self._map_data.robot_position) if self._map_data.robot_position else None
                 )
 
-                map_data = DreameVacuumMapDecoder.decode_p_map_data_from_partial(
+                map_data = XiaomiVacuumMapDecoder.decode_p_map_data_from_partial(
                     partial_map,
                     self._map_data,
                     self._vslam_map,
@@ -729,7 +729,7 @@ class DreameMapVacuumMapManager:
                 (
                     map_data,
                     saved_map_data,
-                ) = DreameVacuumMapDecoder.decode_map_data_from_partial(partial_map, self._vslam_map)
+                ) = XiaomiVacuumMapDecoder.decode_map_data_from_partial(partial_map, self._vslam_map)
                 if map_data is None:
                     self._add_next_map_data()
                     return
@@ -1099,7 +1099,7 @@ class DreameMapVacuumMapManager:
                 if saved_map_list:
                     for v in saved_map_list:
                         if v.get(MAP_PARAMETER_MAP):
-                            saved_map_data = DreameVacuumMapDecoder.decode_saved_map(
+                            saved_map_data = XiaomiVacuumMapDecoder.decode_saved_map(
                                 v[MAP_PARAMETER_MAP],
                                 self._vslam_map,
                                 int(v[MAP_PARAMETER_ANGLE]) if v.get(MAP_PARAMETER_ANGLE) else 0,
@@ -1174,7 +1174,7 @@ class DreameMapVacuumMapManager:
                             if response and response.get(MAP_PARAMETER_RESULT):
                                 _LOGGER.info("Get recovery map file url result: %s", response)
                                 map_url = response[MAP_PARAMETER_RESULT][MAP_PARAMETER_URL]
-                                recovery_map_data = DreameVacuumMapDecoder.decode_saved_map(
+                                recovery_map_data = XiaomiVacuumMapDecoder.decode_saved_map(
                                     map_info[MAP_PARAMETER_THB],
                                     self._vslam_map,
                                     self._saved_map_data[map_id].rotation,
@@ -1214,7 +1214,7 @@ class DreameMapVacuumMapManager:
                 return self._saved_map_data[self._map_list[0]]
 
 
-class DreameMapVacuumMapEditor:
+class XiaomiMapVacuumMapEditor:
     """Every map change must be handled on memory before actually requesting it to the device because it takes too much time to get the updated map from the cloud.
     This class handles user edits on stored map data like updating customized cleaning settings or setting active segments on segment cleaning.
     Original app has a similar class to handle the same issue (Works optimistically)"""
@@ -1329,7 +1329,7 @@ class DreameMapVacuumMapEditor:
             saved_map_data.temporary_map = False
             saved_map_data.empty_map = False
             saved_map_data.saved_map_status = 2
-            DreameVacuumMapDecoder.set_segment_cleanset(saved_map_data, saved_map_data.cleanset)
+            XiaomiVacuumMapDecoder.set_segment_cleanset(saved_map_data, saved_map_data.cleanset)
             self.map_manager._map_data = saved_map_data
             self.map_manager._current_frame_id = None
             self.map_manager._current_map_id = map_id
@@ -1388,7 +1388,7 @@ class DreameMapVacuumMapEditor:
 
                 map_data.data = bytes(data)
                 del self.map_manager._saved_map_data[map_id].segments[segments[1]]
-                new_segments = DreameVacuumMapDecoder.get_segments(map_data, self.map_manager._vslam_map)
+                new_segments = XiaomiVacuumMapDecoder.get_segments(map_data, self.map_manager._vslam_map)
                 map_data.segments[segments[0]].x = new_segments[segments[0]].x
                 map_data.segments[segments[0]].y = new_segments[segments[0]].y
 
@@ -1396,7 +1396,7 @@ class DreameMapVacuumMapEditor:
                     if segments[1] in v.neighbors:
                         map_data.segments[k].neighbors.remove(segments[1])
 
-                DreameVacuumMapDecoder.set_segment_color_index(map_data)
+                XiaomiVacuumMapDecoder.set_segment_color_index(map_data)
                 if self._map_data and map_id == self._selected_map_id:
                     self.set_current_map(map_id)
                 self.refresh_map(map_id)
@@ -1442,7 +1442,7 @@ class DreameMapVacuumMapEditor:
                 map_data.restored_map = True
                 map_data.empty_map = False
                 map_data.cleanset = {}
-                DreameVacuumMapDecoder.set_segment_cleanset(map_data, map_data.cleanset)
+                XiaomiVacuumMapDecoder.set_segment_cleanset(map_data, map_data.cleanset)
                 self.map_manager._map_data = map_data
                 self.map_manager._selected_map_id = new_map.map_id
                 self.map_manager.request_next_map_list()
@@ -1746,7 +1746,7 @@ class DreameMapVacuumMapEditor:
         return self.map_manager._current_timestamp_ms
 
 
-class DreameVacuumMapDecoder:
+class XiaomiVacuumMapDecoder:
     HEADER_SIZE = 27
 
     @staticmethod
@@ -1898,13 +1898,13 @@ class DreameVacuumMapDecoder:
                 raw_map = decryptor.update(raw_map) + decryptor.finalize()
             except Exception as ex:
                 _LOGGER.error(
-                    f"Map data decryption failed: {ex}. Private key might be missing, please report this issue with your device model https://github.com/Tasshack/dreame-vacuum/issues/new?assignees=Tasshack&labels=bug&template=bug_report.md&title=Map%20data%20decryption%20failed"
+                    f"Map data decryption failed: {ex}. Private key might be missing, please report this issue with your device model https://github.com/voska/dreame-vacuum/issues"
                 )
                 return None
 
         try:
             raw_map = zlib.decompress(raw_map)
-            if not raw_map or len(raw_map) < DreameVacuumMapDecoder.HEADER_SIZE:
+            if not raw_map or len(raw_map) < XiaomiVacuumMapDecoder.HEADER_SIZE:
                 _LOGGER.error("Wrong header size for map")
                 return None
         except Exception as ex:
@@ -1912,12 +1912,12 @@ class DreameVacuumMapDecoder:
             return None
 
         partial_map = MapDataPartial()
-        partial_map.map_id = DreameVacuumMapDecoder._read_int_16_le(raw_map)
-        partial_map.frame_id = DreameVacuumMapDecoder._read_int_16_le(raw_map, 2)
-        partial_map.frame_type = DreameVacuumMapDecoder._read_int_8(raw_map, 4)
+        partial_map.map_id = XiaomiVacuumMapDecoder._read_int_16_le(raw_map)
+        partial_map.frame_id = XiaomiVacuumMapDecoder._read_int_16_le(raw_map, 2)
+        partial_map.frame_type = XiaomiVacuumMapDecoder._read_int_8(raw_map, 4)
         partial_map.raw = raw_map
-        image_size = DreameVacuumMapDecoder.HEADER_SIZE + (
-            DreameVacuumMapDecoder._read_int_16_le(raw_map, 19) * DreameVacuumMapDecoder._read_int_16_le(raw_map, 21)
+        image_size = XiaomiVacuumMapDecoder.HEADER_SIZE + (
+            XiaomiVacuumMapDecoder._read_int_16_le(raw_map, 19) * XiaomiVacuumMapDecoder._read_int_16_le(raw_map, 21)
         )
         if len(raw_map) >= image_size:
             try:
@@ -1934,13 +1934,13 @@ class DreameVacuumMapDecoder:
     def decode_map(
         raw_map: str, vslam_map: bool, rotation: int = 0, iv: str = None, key: str = None
     ) -> Tuple[MapData, Optional[MapData]]:
-        return DreameVacuumMapDecoder.decode_map_data_from_partial(
-            DreameVacuumMapDecoder.decode_map_partial(raw_map, iv, key), vslam_map, rotation
+        return XiaomiVacuumMapDecoder.decode_map_data_from_partial(
+            XiaomiVacuumMapDecoder.decode_map_partial(raw_map, iv, key), vslam_map, rotation
         )
 
     @staticmethod
     def decode_saved_map(raw_map: str, vslam_map: bool, rotation: int = 0, iv: str = None) -> MapData | None:
-        return DreameVacuumMapDecoder.decode_map(raw_map, vslam_map, rotation, iv)[0]
+        return XiaomiVacuumMapDecoder.decode_map(raw_map, vslam_map, rotation, iv)[0]
 
     @staticmethod
     def decode_map_data_from_partial(
@@ -1957,23 +1957,23 @@ class DreameVacuumMapDecoder:
 
         raw = partial_map.raw
         map_data.robot_position = Point(
-            DreameVacuumMapDecoder._read_int_16_le(raw, 5),
-            DreameVacuumMapDecoder._read_int_16_le(raw, 7),
-            DreameVacuumMapDecoder._read_int_16_le(raw, 9),
+            XiaomiVacuumMapDecoder._read_int_16_le(raw, 5),
+            XiaomiVacuumMapDecoder._read_int_16_le(raw, 7),
+            XiaomiVacuumMapDecoder._read_int_16_le(raw, 9),
         )
         map_data.charger_position = Point(
-            DreameVacuumMapDecoder._read_int_16_le(raw, 11),
-            DreameVacuumMapDecoder._read_int_16_le(raw, 13),
-            DreameVacuumMapDecoder._read_int_16_le(raw, 15),
+            XiaomiVacuumMapDecoder._read_int_16_le(raw, 11),
+            XiaomiVacuumMapDecoder._read_int_16_le(raw, 13),
+            XiaomiVacuumMapDecoder._read_int_16_le(raw, 15),
         )
 
-        grid_size = DreameVacuumMapDecoder._read_int_16_le(raw, 17)
-        width = DreameVacuumMapDecoder._read_int_16_le(raw, 19)
-        height = DreameVacuumMapDecoder._read_int_16_le(raw, 21)
-        left = DreameVacuumMapDecoder._read_int_16_le(raw, 23)
-        top = DreameVacuumMapDecoder._read_int_16_le(raw, 25)
+        grid_size = XiaomiVacuumMapDecoder._read_int_16_le(raw, 17)
+        width = XiaomiVacuumMapDecoder._read_int_16_le(raw, 19)
+        height = XiaomiVacuumMapDecoder._read_int_16_le(raw, 21)
+        left = XiaomiVacuumMapDecoder._read_int_16_le(raw, 23)
+        top = XiaomiVacuumMapDecoder._read_int_16_le(raw, 25)
 
-        image_size = DreameVacuumMapDecoder.HEADER_SIZE + width * height
+        image_size = XiaomiVacuumMapDecoder.HEADER_SIZE + width * height
         map_data.dimensions = MapImageDimensions(top, left, height, width, grid_size)
         data_json = partial_map.data_json
         if data_json is None:
@@ -2111,7 +2111,7 @@ class DreameVacuumMapDecoder:
 
         map_data.empty_map = map_data.frame_type == MapFrameType.I.value
         if (width * height) > 0:
-            map_data.data = raw[DreameVacuumMapDecoder.HEADER_SIZE : image_size]
+            map_data.data = raw[XiaomiVacuumMapDecoder.HEADER_SIZE : image_size]
             map_data.empty_map = bool(width == 2 and height == 2)
             if map_data.empty_map:
                 for y in range(height):
@@ -2182,7 +2182,7 @@ class DreameVacuumMapDecoder:
                                         if segment_id > 0:
                                             map_data.pixel_type[x, y] = segment_id
 
-                    segments = DreameVacuumMapDecoder.get_segments(map_data, vslam_map)
+                    segments = XiaomiVacuumMapDecoder.get_segments(map_data, vslam_map)
                     if segments and data_json.get("seg_inf"):
                         seg_inf = data_json["seg_inf"]
                         for k, v in segments.items():
@@ -2208,7 +2208,7 @@ class DreameVacuumMapDecoder:
         restored_map = map_data.restored_map
 
         if data_json.get("rism"):
-            saved_map_data = DreameVacuumMapDecoder.decode_saved_map(
+            saved_map_data = XiaomiVacuumMapDecoder.decode_saved_map(
                 data_json["rism"],
                 vslam_map,
                 map_data.rotation,
@@ -2281,11 +2281,11 @@ class DreameVacuumMapDecoder:
 
         if map_data.segments:
             if not map_data.saved_map:
-                DreameVacuumMapDecoder.set_segment_cleanset(map_data, map_data.cleanset)
-                DreameVacuumMapDecoder.set_robot_segment(map_data)
+                XiaomiVacuumMapDecoder.set_segment_cleanset(map_data, map_data.cleanset)
+                XiaomiVacuumMapDecoder.set_robot_segment(map_data)
 
             if map_data.saved_map_status == 2 or map_data.saved_map:
-                DreameVacuumMapDecoder.set_segment_color_index(map_data)
+                XiaomiVacuumMapDecoder.set_segment_color_index(map_data)
 
         if data_json.get("vw"):
             if data_json["vw"].get("rect") and not map_data.no_go_areas:
@@ -2347,7 +2347,7 @@ class DreameVacuumMapDecoder:
         if partial_map.frame_type != MapFrameType.P.value:
             return None
 
-        map_data, saved_map_data = DreameVacuumMapDecoder.decode_map_data_from_partial(
+        map_data, saved_map_data = XiaomiVacuumMapDecoder.decode_map_data_from_partial(
             partial_map,
             vslam_map,
         )
@@ -2423,7 +2423,7 @@ class DreameVacuumMapDecoder:
                         # Add current buffer value to new buffer value for finding the new pixel value
                         data[new_index] = data[new_index] + map_data.data[current_index]
                         # Calculate the new pixel type from updated buffer value
-                        pixel_type[left_offset + x, top_offset + y] = DreameVacuumMapDecoder._get_pixel_type(
+                        pixel_type[left_offset + x, top_offset + y] = XiaomiVacuumMapDecoder._get_pixel_type(
                             current_map_data,
                             int(data[new_index]),
                             vslam_map,
@@ -2444,7 +2444,7 @@ class DreameVacuumMapDecoder:
             else:
                 current_map_data.path = map_data.path
 
-        DreameVacuumMapDecoder.set_robot_segment(current_map_data)
+        XiaomiVacuumMapDecoder.set_robot_segment(current_map_data)
 
         # if robotPos.l2r == True and self._robotPos.l2r == True:
         #    self._lastPos = self._robotPos
@@ -2495,9 +2495,9 @@ class DreameVacuumMapDecoder:
                             if startI != -1 and endI != -1:
                                 x = (endI - startI) + startI
                     else:
-                        center_x = DreameVacuumMapDecoder._get_segment_center(map_data, k, y, False)
+                        center_x = XiaomiVacuumMapDecoder._get_segment_center(map_data, k, y, False)
                         if center_x is not None:
-                            center_y = DreameVacuumMapDecoder._get_segment_center(map_data, k, center_x, True)
+                            center_y = XiaomiVacuumMapDecoder._get_segment_center(map_data, k, center_x, True)
                             if center_y is not None:
                                 x = center_x
                                 y = center_y
@@ -2565,7 +2565,7 @@ class DreameVacuumMapDecoder:
         area_color_index = {}
         sorted_segments = sorted(
             map_data.segments.values(),
-            key=cmp_to_key(DreameVacuumMapDecoder._compare_segment_neighbors),
+            key=cmp_to_key(XiaomiVacuumMapDecoder._compare_segment_neighbors),
         )
         for segment in sorted_segments:
             used_ids = []
@@ -2583,7 +2583,7 @@ class DreameVacuumMapDecoder:
 
             area_color_num = sorted(
                 area_color_num.values(),
-                key=cmp_to_key(DreameVacuumMapDecoder._compare_colors),
+                key=cmp_to_key(XiaomiVacuumMapDecoder._compare_colors),
             )
 
             for area_color in area_color_num:
@@ -2599,7 +2599,7 @@ class DreameVacuumMapDecoder:
             map_data.segments[i].color_index = area_color_index[i]
 
 
-class DreameVacuumMapDataRenderer:
+class XiaomiVacuumMapDataRenderer:
     HALF_INT16 = 32768
     HALF_INT16_UPPER_HALF = 32767
     MAX = round(((HALF_INT16 + HALF_INT16_UPPER_HALF) / 10))
@@ -2632,8 +2632,8 @@ class DreameVacuumMapDataRenderer:
     @staticmethod
     def _convert_coordinates(x: int, y: int) -> int:
         return [
-            round((x + DreameVacuumMapDataRenderer.HALF_INT16) / 10),
-            DreameVacuumMapDataRenderer.MAX - round((y + DreameVacuumMapDataRenderer.HALF_INT16) / 10),
+            round((x + XiaomiVacuumMapDataRenderer.HALF_INT16) / 10),
+            XiaomiVacuumMapDataRenderer.MAX - round((y + XiaomiVacuumMapDataRenderer.HALF_INT16) / 10),
         ]
 
     @staticmethod
@@ -2674,15 +2674,15 @@ class DreameVacuumMapDataRenderer:
             or self._map_data.saved_map_status != map_data.saved_map_status
         ):
             self._map_data = None
-            self._left = round((map_data.dimensions.left + DreameVacuumMapDataRenderer.HALF_INT16) / 10)
-            self._top = round((map_data.dimensions.top + DreameVacuumMapDataRenderer.HALF_INT16) / 10)
+            self._left = round((map_data.dimensions.left + XiaomiVacuumMapDataRenderer.HALF_INT16) / 10)
+            self._top = round((map_data.dimensions.top + XiaomiVacuumMapDataRenderer.HALF_INT16) / 10)
             self._grid_size = round(map_data.dimensions.grid_size / 10)
 
         map_data_json = {
             MAP_DATA_PARAMETER_CLASS: "ValetudoMap",
             MAP_DATA_PARAMETER_SIZE: {
-                MAP_DATA_PARAMETER_X: DreameVacuumMapDataRenderer.MAX,
-                MAP_DATA_PARAMETER_Y: DreameVacuumMapDataRenderer.MAX,
+                MAP_DATA_PARAMETER_X: XiaomiVacuumMapDataRenderer.MAX,
+                MAP_DATA_PARAMETER_Y: XiaomiVacuumMapDataRenderer.MAX,
             },
             MAP_DATA_PARAMETER_PIXEL_SIZE: self._grid_size,
             MAP_DATA_PARAMETER_LAYERS: [],
@@ -2701,11 +2701,11 @@ class DreameVacuumMapDataRenderer:
             ):
                 self._layers[MapRendererLayer.ROBOT] = {
                     MAP_DATA_PARAMETER_TYPE: MAP_DATA_PARAMETER_ROBOT_POSITION,
-                    MAP_DATA_PARAMETER_POINTS: DreameVacuumMapDataRenderer._convert_coordinates(
+                    MAP_DATA_PARAMETER_POINTS: XiaomiVacuumMapDataRenderer._convert_coordinates(
                         map_data.robot_position.x, map_data.robot_position.y
                     ),
                     MAP_DATA_PARAMETER_META_DATA: {
-                        MAP_PARAMETER_ANGLE: DreameVacuumMapDataRenderer._convert_angle(map_data.robot_position.a)
+                        MAP_PARAMETER_ANGLE: XiaomiVacuumMapDataRenderer._convert_angle(map_data.robot_position.a)
                     },
                 }
             map_data_json[MAP_DATA_PARAMETER_ENTITIES].append(self._layers[MapRendererLayer.ROBOT])
@@ -2718,11 +2718,11 @@ class DreameVacuumMapDataRenderer:
             ):
                 self._layers[MapRendererLayer.CHARGER] = {
                     MAP_DATA_PARAMETER_TYPE: MAP_DATA_PARAMETER_CHARGER_POSITION,
-                    MAP_DATA_PARAMETER_POINTS: DreameVacuumMapDataRenderer._convert_coordinates(
+                    MAP_DATA_PARAMETER_POINTS: XiaomiVacuumMapDataRenderer._convert_coordinates(
                         map_data.charger_position.x, map_data.charger_position.y
                     ),
                     MAP_DATA_PARAMETER_META_DATA: {
-                        MAP_PARAMETER_ANGLE: DreameVacuumMapDataRenderer._convert_angle(map_data.charger_position.a)
+                        MAP_PARAMETER_ANGLE: XiaomiVacuumMapDataRenderer._convert_angle(map_data.charger_position.a)
                     },
                 }
             map_data_json[MAP_DATA_PARAMETER_ENTITIES].append(self._layers[MapRendererLayer.CHARGER])
@@ -2735,10 +2735,10 @@ class DreameVacuumMapDataRenderer:
             ):
                 self._layers[MapRendererLayer.NO_MOP] = []
                 for area in map_data.no_mopping_areas:
-                    a = DreameVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
-                    b = DreameVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
-                    c = DreameVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
-                    d = DreameVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
+                    a = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
+                    b = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
+                    c = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
+                    d = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
                     self._layers[MapRendererLayer.NO_MOP].append(
                         {
                             MAP_DATA_PARAMETER_TYPE: MAP_DATA_PARAMETER_NO_MOP_AREA,
@@ -2755,10 +2755,10 @@ class DreameVacuumMapDataRenderer:
             ):
                 self._layers[MapRendererLayer.NO_GO] = []
                 for area in map_data.no_go_areas:
-                    a = DreameVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
-                    b = DreameVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
-                    c = DreameVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
-                    d = DreameVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
+                    a = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
+                    b = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
+                    c = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
+                    d = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
 
                     self._layers[MapRendererLayer.NO_GO].append(
                         {
@@ -2776,10 +2776,10 @@ class DreameVacuumMapDataRenderer:
             ):
                 self._layers[MapRendererLayer.ACTIVE_AREA] = []
                 for area in map_data.active_areas:
-                    a = DreameVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
-                    b = DreameVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
-                    c = DreameVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
-                    d = DreameVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
+                    a = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
+                    b = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
+                    c = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
+                    d = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
 
                     self._layers[MapRendererLayer.ACTIVE_AREA].append(
                         {
@@ -2809,10 +2809,10 @@ class DreameVacuumMapDataRenderer:
                         point.y + size,
                     )
 
-                    a = DreameVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
-                    b = DreameVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
-                    c = DreameVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
-                    d = DreameVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
+                    a = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x0, area.y0)
+                    b = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x1, area.y1)
+                    c = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x2, area.y2)
+                    d = XiaomiVacuumMapDataRenderer._convert_coordinates(area.x3, area.y3)
 
                     self._layers[MapRendererLayer.ACTIVE_POINT].append(
                         {
@@ -2830,8 +2830,8 @@ class DreameVacuumMapDataRenderer:
             ):
                 self._layers[MapRendererLayer.WALL] = []
                 for wall in map_data.walls:
-                    a = DreameVacuumMapDataRenderer._convert_coordinates(wall.x0, wall.y0)
-                    b = DreameVacuumMapDataRenderer._convert_coordinates(wall.x1, wall.y1)
+                    a = XiaomiVacuumMapDataRenderer._convert_coordinates(wall.x0, wall.y0)
+                    b = XiaomiVacuumMapDataRenderer._convert_coordinates(wall.x1, wall.y1)
 
                     self._layers[MapRendererLayer.WALL].append(
                         {
@@ -2853,8 +2853,8 @@ class DreameVacuumMapDataRenderer:
                 for point in map_data.path[1:]:
                     if point.path_type == PathType.LINE:
                         point = point
-                        a = DreameVacuumMapDataRenderer._convert_coordinates(s.x, s.y)
-                        b = DreameVacuumMapDataRenderer._convert_coordinates(point.x, point.y)
+                        a = XiaomiVacuumMapDataRenderer._convert_coordinates(s.x, s.y)
+                        b = XiaomiVacuumMapDataRenderer._convert_coordinates(point.x, point.y)
 
                         points.extend([a[0], a[1], b[0], b[1]])
                     else:
@@ -2895,7 +2895,7 @@ class DreameVacuumMapDataRenderer:
                         (y + (self._top / self._grid_size)),
                     ]
 
-                    coords[1] = (DreameVacuumMapDataRenderer.MAX / self._grid_size) - coords[1]
+                    coords[1] = (XiaomiVacuumMapDataRenderer.MAX / self._grid_size) - coords[1]
 
                     coords[0] = round(coords[0])
                     coords[1] = round(coords[1])
@@ -2923,7 +2923,7 @@ class DreameVacuumMapDataRenderer:
                             val
                             for sublist in sorted(
                                 floor_pixels,
-                                key=cmp_to_key(DreameVacuumMapDataRenderer._coordinate_tuple_sort),
+                                key=cmp_to_key(XiaomiVacuumMapDataRenderer._coordinate_tuple_sort),
                             )
                             for val in sublist
                         ],
@@ -2938,7 +2938,7 @@ class DreameVacuumMapDataRenderer:
                             val
                             for sublist in sorted(
                                 wall_pixels,
-                                key=cmp_to_key(DreameVacuumMapDataRenderer._coordinate_tuple_sort),
+                                key=cmp_to_key(XiaomiVacuumMapDataRenderer._coordinate_tuple_sort),
                             )
                             for val in sublist
                         ],
@@ -2959,7 +2959,7 @@ class DreameVacuumMapDataRenderer:
                                 val
                                 for sublist in sorted(
                                     v,
-                                    key=cmp_to_key(DreameVacuumMapDataRenderer._coordinate_tuple_sort),
+                                    key=cmp_to_key(XiaomiVacuumMapDataRenderer._coordinate_tuple_sort),
                                 )
                                 for val in sublist
                             ],
@@ -3089,7 +3089,7 @@ class DreameVacuumMapDataRenderer:
         return self.default_map_image
 
 
-class DreameVacuumMapRenderer:
+class XiaomiVacuumMapRenderer:
     def __init__(
         self,
         color_scheme: str = None,
@@ -3372,7 +3372,7 @@ class DreameVacuumMapRenderer:
                     or self._map_data.segments != map_data.segments
                     or self._map_data.dimensions != map_data.dimensions
                 ):
-                    map_data.dimensions.bounds = DreameVacuumMapRenderer._calculate_bounds(
+                    map_data.dimensions.bounds = XiaomiVacuumMapRenderer._calculate_bounds(
                         map_data.dimensions, map_data.segments
                     )
 
@@ -3391,7 +3391,7 @@ class DreameVacuumMapRenderer:
                 or self._map_data.dimensions != map_data.dimensions
                 or self._map_data.restored_map != map_data.restored_map
             ):
-                map_data.dimensions.padding = DreameVacuumMapRenderer._calculate_padding(
+                map_data.dimensions.padding = XiaomiVacuumMapRenderer._calculate_padding(
                     map_data.dimensions,
                     map_data.active_areas,
                     map_data.no_mopping_areas,
@@ -4150,7 +4150,7 @@ class DreameVacuumMapRenderer:
             )
 
             if self.icon_set == 3:
-                self._charger_icon = DreameVacuumMapRenderer._set_icon_color(
+                self._charger_icon = XiaomiVacuumMapRenderer._set_icon_color(
                     self._charger_icon,
                     icon_size,
                     (0, 255, 126),
@@ -4619,7 +4619,7 @@ class DreameVacuumMapRenderer:
                         else:
                             s = icon_size * 0.85 * scale
 
-                        ico = DreameVacuumMapRenderer._set_icon_color(
+                        ico = XiaomiVacuumMapRenderer._set_icon_color(
                             self._cleaning_mode_icon[segment.cleaning_mode],
                             s,
                             self.color_scheme.segment[segment.color_index][1],
@@ -4647,7 +4647,7 @@ class DreameVacuumMapRenderer:
                         else:
                             s = icon_size * 0.85 * scale
 
-                        ico = DreameVacuumMapRenderer._set_icon_color(
+                        ico = XiaomiVacuumMapRenderer._set_icon_color(
                             self._suction_level_icon[segment.suction_level],
                             s,
                             self.color_scheme.segment[segment.color_index][1],
@@ -4676,7 +4676,7 @@ class DreameVacuumMapRenderer:
                         else:
                             s = icon_size * 0.85 * scale
 
-                        ico = DreameVacuumMapRenderer._set_icon_color(
+                        ico = XiaomiVacuumMapRenderer._set_icon_color(
                             self._water_volume_icon[segment.water_volume - 1],
                             s,
                             self.color_scheme.segment[segment.color_index][1],
@@ -4704,7 +4704,7 @@ class DreameVacuumMapRenderer:
                         else:
                             s = icon_size * 0.85 * scale
 
-                        ico = DreameVacuumMapRenderer._set_icon_color(
+                        ico = XiaomiVacuumMapRenderer._set_icon_color(
                             self._cleaning_times_icon[segment.cleaning_times - 1],
                             s,
                             self.color_scheme.segment[segment.color_index][1],
@@ -4806,7 +4806,7 @@ class DreameVacuumMapRenderer:
         return self._default_calibration_points
 
 
-class DreameVacuumMapOptimizer:
+class XiaomiVacuumMapOptimizer:
     def __init__(self) -> None:
         self._js_optimizer = None
 

@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for Dreame Vacuum."""
+"""DataUpdateCoordinator for Xiaomi Vacuum."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .dreame import DreameVacuumDevice, DreameVacuumProperty, VERSION
-from .dreame.resources import CONSUMABLE_IMAGE
+from .xiaomi import XiaomiVacuumDevice, XiaomiVacuumProperty, VERSION
+from .xiaomi.resources import CONSUMABLE_IMAGE
 from .const import (
     DOMAIN,
     LOGGER,
@@ -75,8 +75,8 @@ from .const import (
 )
 
 
-class DreameVacuumDataUpdateCoordinator(DataUpdateCoordinator[DreameVacuumDevice]):
-    """Class to manage fetching Dreame Vacuum data from single endpoint."""
+class XiaomiVacuumDataUpdateCoordinator(DataUpdateCoordinator[XiaomiVacuumDevice]):
+    """Class to manage fetching Xiaomi Vacuum data from single endpoint."""
 
     config_entry: ConfigEntry
 
@@ -86,7 +86,7 @@ class DreameVacuumDataUpdateCoordinator(DataUpdateCoordinator[DreameVacuumDevice
         *,
         entry: ConfigEntry,
     ) -> None:
-        """Initialize global Dreame Vacuum data updater."""
+        """Initialize global Xiaomi Vacuum data updater."""
         self._token = entry.data[CONF_TOKEN]
         self._host = entry.data[CONF_HOST]
         self._notify = entry.options.get(CONF_NOTIFY, True)
@@ -118,12 +118,12 @@ class DreameVacuumDataUpdateCoordinator(DataUpdateCoordinator[DreameVacuumDevice
                 persistent_notification.create(
                     hass=hass,
                     message=NOTIFICATION_SPONSOR,
-                    title="Dreame Vacuum",
+                    title="Xiaomi Vacuum",
                     notification_id=f"{DOMAIN}_sponsor",
                 )
             hass.config_entries.async_update_entry(entry=entry, options=options)
 
-        self.device = DreameVacuumDevice(
+        self.device = XiaomiVacuumDevice(
             entry.data[CONF_NAME],
             self._host,
             self._token,
@@ -136,10 +136,10 @@ class DreameVacuumDataUpdateCoordinator(DataUpdateCoordinator[DreameVacuumDevice
             self._auth_key,
         )
 
-        self.device.listen(self._dust_collection_changed, DreameVacuumProperty.DUST_COLLECTION)
-        self.device.listen(self._error_changed, DreameVacuumProperty.ERROR)
-        self.device.listen(self._task_status_changed, DreameVacuumProperty.TASK_STATUS)
-        self.device.listen(self._cleaning_paused_changed, DreameVacuumProperty.CLEANING_PAUSED)
+        self.device.listen(self._dust_collection_changed, XiaomiVacuumProperty.DUST_COLLECTION)
+        self.device.listen(self._error_changed, XiaomiVacuumProperty.ERROR)
+        self.device.listen(self._task_status_changed, XiaomiVacuumProperty.TASK_STATUS)
+        self.device.listen(self._cleaning_paused_changed, XiaomiVacuumProperty.CLEANING_PAUSED)
         self.device.listen(self.set_updated_data)
         self.device.listen_error(self.set_update_error)
 
@@ -321,7 +321,7 @@ class DreameVacuumDataUpdateCoordinator(DataUpdateCoordinator[DreameVacuumDevice
             event_data.update(data)
         self.hass.bus.fire(f"{DOMAIN}_{event_id}", event_data)
 
-    async def _async_update_data(self) -> DreameVacuumDevice:
+    async def _async_update_data(self) -> XiaomiVacuumDevice:
         """Handle device update. This function is only called once when the integration is added to Home Assistant."""
         try:
             LOGGER.info("Integration starting...")

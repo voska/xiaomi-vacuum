@@ -27,21 +27,21 @@ from .const import (
     LOGGER,
 )
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
-from .entity import DreameVacuumEntity, DreameVacuumEntityDescription
-from .dreame.map import DreameVacuumMapRenderer, DreameVacuumMapDataRenderer
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
+from .entity import XiaomiVacuumEntity, XiaomiVacuumEntityDescription
+from .xiaomi.map import XiaomiVacuumMapRenderer, XiaomiVacuumMapDataRenderer
 
 
 @dataclass
-class DreameVacuumCameraEntityDescription(DreameVacuumEntityDescription, CameraEntityDescription):
-    """Describes Dreame Vacuum Camera entity."""
+class XiaomiVacuumCameraEntityDescription(XiaomiVacuumEntityDescription, CameraEntityDescription):
+    """Describes Xiaomi Vacuum Camera entity."""
 
     map_data_json: bool = False
 
 
 CAMERAS: tuple[CameraEntityDescription, ...] = (
-    DreameVacuumCameraEntityDescription(key="map", icon="mdi:map"),
-    DreameVacuumCameraEntityDescription(
+    XiaomiVacuumCameraEntityDescription(key="map", icon="mdi:map"),
+    XiaomiVacuumCameraEntityDescription(
         key="map_data",
         icon="mdi:map",
         entity_category=EntityCategory.CONFIG,
@@ -56,14 +56,14 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Dreame Vacuum Camera based on a config entry."""
-    coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Xiaomi Vacuum Camera based on a config entry."""
+    coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     color_scheme = entry.options.get(CONF_COLOR_SCHEME)
     icon_set = entry.options.get(CONF_ICON_SET)
     hidden_map_objects = entry.options.get(CONF_HIDDEN_MAP_OBJECTS, [])
     if coordinator.device.status.map_available:
         async_add_entities(
-            DreameVacuumCameraEntity(coordinator, description, color_scheme, icon_set, hidden_map_objects)
+            XiaomiVacuumCameraEntity(coordinator, description, color_scheme, icon_set, hidden_map_objects)
             for description in CAMERAS
         )
 
@@ -76,8 +76,8 @@ async def async_setup_entry(
 
 @callback
 def async_update_map_cameras(
-    coordinator: DreameVacuumDataUpdateCoordinator,
-    current: dict[str, list[DreameVacuumCameraEntity]],
+    coordinator: XiaomiVacuumDataUpdateCoordinator,
+    current: dict[str, list[XiaomiVacuumCameraEntity]],
     async_add_entities,
     color_scheme: str,
     icon_set: str,
@@ -92,9 +92,9 @@ def async_update_map_cameras(
 
     for map_index in new_indexes - current_ids:
         current[map_index] = [
-            DreameVacuumCameraEntity(
+            XiaomiVacuumCameraEntity(
                 coordinator,
-                DreameVacuumCameraEntityDescription(
+                XiaomiVacuumCameraEntityDescription(
                     entity_category=EntityCategory.CONFIG,
                     icon="mdi:map-search",
                 ),
@@ -112,8 +112,8 @@ def async_update_map_cameras(
 
 def async_remove_map_cameras(
     map_index: str,
-    coordinator: DreameVacuumDataUpdateCoordinator,
-    current: dict[str, DreameVacuumCameraEntity],
+    coordinator: XiaomiVacuumDataUpdateCoordinator,
+    current: dict[str, XiaomiVacuumCameraEntity],
 ) -> None:
     registry = entity_registry.async_get(coordinator.hass)
     entities = current[map_index]
@@ -123,8 +123,8 @@ def async_remove_map_cameras(
     del current[map_index]
 
 
-class DreameVacuumCameraEntity(DreameVacuumEntity, Camera):
-    """Defines a Dreame Vacuum Camera entity."""
+class XiaomiVacuumCameraEntity(XiaomiVacuumEntity, Camera):
+    """Defines a Xiaomi Vacuum Camera entity."""
 
     _webrtc_provider = None
     _legacy_webrtc_provider = None
@@ -133,14 +133,14 @@ class DreameVacuumCameraEntity(DreameVacuumEntity, Camera):
 
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
-        description: DreameVacuumCameraEntityDescription,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
+        description: XiaomiVacuumCameraEntityDescription,
         color_scheme: str = None,
         icon_set: str = None,
         hidden_map_objects: list[str] = None,
         map_index: int = 0,
     ) -> None:
-        """Initialize a Dreame Vacuum Camera entity."""
+        """Initialize a Xiaomi Vacuum Camera entity."""
         super().__init__(coordinator, description)
         self.content_type = CONTENT_TYPE
         self.stream = None
@@ -156,9 +156,9 @@ class DreameVacuumCameraEntity(DreameVacuumEntity, Camera):
 
         self._available = self.device.device_connected and self.device.cloud_connected
         if description.map_data_json:
-            self._renderer = DreameVacuumMapDataRenderer()
+            self._renderer = XiaomiVacuumMapDataRenderer()
         else:
-            self._renderer = DreameVacuumMapRenderer(
+            self._renderer = XiaomiVacuumMapRenderer(
                 color_scheme, icon_set, hidden_map_objects, self.device.status.robot_shape
             )
 

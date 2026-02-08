@@ -1,4 +1,4 @@
-"""Support for Dreame Vacuum Binary Sensors."""
+"""Support for Xiaomi Vacuum Binary Sensors."""
 
 from __future__ import annotations
 
@@ -16,18 +16,18 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 
-from .coordinator import DreameVacuumDataUpdateCoordinator
-from .entity import DreameVacuumEntity, DreameVacuumEntityDescription
+from .coordinator import XiaomiVacuumDataUpdateCoordinator
+from .entity import XiaomiVacuumEntity, XiaomiVacuumEntityDescription
 
 
 @dataclass
-class DreameVacuumBinarySensorEntityDescription(DreameVacuumEntityDescription, BinarySensorEntityDescription):
-    """Describes Dreame Vacuum BinarySensor entity."""
+class XiaomiVacuumBinarySensorEntityDescription(XiaomiVacuumEntityDescription, BinarySensorEntityDescription):
+    """Describes Xiaomi Vacuum BinarySensor entity."""
 
 
 BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
     ## This entity is need for battery icon to be rendered correctly since vacuum entity attr_charging attribute has been deprecated
-    DreameVacuumBinarySensorEntityDescription(
+    XiaomiVacuumBinarySensorEntityDescription(
         key="charging_state",
         name="Charging State",
         device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
@@ -46,24 +46,24 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Dreame Vacuum Binary Sensor based on a config entry."""
-    coordinator: DreameVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Xiaomi Vacuum Binary Sensor based on a config entry."""
+    coordinator: XiaomiVacuumDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        DreameVacuumBinarySensorEntity(coordinator, description)
+        XiaomiVacuumBinarySensorEntity(coordinator, description)
         for description in BINARY_SENSORS
         if description.exists_fn(description, coordinator.device)
     )
 
 
-class DreameVacuumBinarySensorEntity(DreameVacuumEntity, BinarySensorEntity):
-    """Defines a Dreame Vacuum Binary Sensor entity."""
+class XiaomiVacuumBinarySensorEntity(XiaomiVacuumEntity, BinarySensorEntity):
+    """Defines a Xiaomi Vacuum Binary Sensor entity."""
 
     def __init__(
         self,
-        coordinator: DreameVacuumDataUpdateCoordinator,
-        description: DreameVacuumBinarySensorEntityDescription,
+        coordinator: XiaomiVacuumDataUpdateCoordinator,
+        description: XiaomiVacuumBinarySensorEntityDescription,
     ) -> None:
-        """Initialize a Dreame Vacuum BinarySensor entity."""
+        """Initialize a Xiaomi Vacuum BinarySensor entity."""
         super().__init__(coordinator, description)
 
     @property
