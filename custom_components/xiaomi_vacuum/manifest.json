@@ -5,9 +5,9 @@
     "@voska"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/voska/dreame-vacuum",
+  "documentation": "https://github.com/voska/xiaomi-vacuum",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/voska/dreame-vacuum/issues",
+  "issue_tracker": "https://github.com/voska/xiaomi-vacuum/issues",
   "requirements": [
     "pillow",
     "numpy",

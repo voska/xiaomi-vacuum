@@ -739,8 +739,8 @@ class XiaomiVacuumDevice:
             self.action_mapping = action_map
             _LOGGER.info("Using custom mappings for %s", self.info.model)
             if self._map_manager:
-                _LOGGER.warning("Map rendering not available for %s — encryption key unknown", self.info.model)
-                self._map_manager = None
+                self._map_manager.set_aes_iv("OFULk9To37qRdXY3")
+                _LOGGER.info("Map encryption IV set for %s", self.info.model)
 
         self._last_settings_request = time.time()
         self._last_map_list_request = self._last_settings_request
