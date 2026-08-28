@@ -229,6 +229,21 @@ class XiaomiVacuumCameraEntity(XiaomiVacuumEntity, Camera):
         self.async_write_ha_state()
 
     async def async_camera_image(self, width: int | None = None, height: int | None = None) -> bytes | None:
+        # Models that publish a JSON map render it themselves. The Dreame frame
+        # pipeline below cannot decode that format, and its state machine never
+        # produces a map object for them, so it is bypassed entirely.
+        if self.device.json_map_supported():
+            now = time.time()
+            if now - self._last_map_request >= self.frame_interval:
+                self._last_map_request = now
+                image = await self.hass.async_add_executor_job(self.device.update_json_map)
+                if image:
+                    self._image = image
+                    self._default_map = False
+                    self._state = datetime.now()
+                    self.async_write_ha_state()
+            return self._image
+
         if self._should_poll is True:
             self._should_poll = False
             now = time.time()
@@ -269,7 +284,25 @@ class XiaomiVacuumCameraEntity(XiaomiVacuumEntity, Camera):
             await asyncio.sleep(interval)
         return response
 
+    async def _async_update_json_map(self) -> None:
+        """Refresh the rendered JSON map and publish the new state."""
+        image = await self.coordinator.hass.async_add_executor_job(self.device.update_json_map)
+        if image:
+            self._image = image
+            self._default_map = False
+            self._state = datetime.now()
+            self.async_write_ha_state()
+
     def update(self) -> None:
+        if self.device.json_map_supported():
+            # Render off the coordinator tick as well, so the entity is live
+            # without needing someone to open the camera first.
+            now = time.time()
+            if now - self._last_map_request >= self.frame_interval:
+                self._last_map_request = now
+                self.coordinator.hass.async_create_task(self._async_update_json_map())
+            return
+
         map_data = self._map_data
         if map_data and self.available and (self.map_index > 0 or self.device.status.located):
             if (
@@ -330,6 +363,10 @@ class XiaomiVacuumCameraEntity(XiaomiVacuumEntity, Camera):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
+        if self.device.json_map_supported():
+            # The user cloud used for map files is only logged in on demand, so
+            # cloud_connected is not a useful liveness signal for these models.
+            return bool(self.device.device_connected)
         return self._available
 
     @property
