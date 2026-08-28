@@ -733,24 +733,22 @@ XiaomiVacuumD109glPropertyMapping = {
     XiaomiVacuumProperty.CLEANING_TIME: {"siid": 2, "piid": 7},
     XiaomiVacuumProperty.SUCTION_LEVEL: {"siid": 2, "piid": 9},
     XiaomiVacuumProperty.WATER_VOLUME: {"siid": 2, "piid": 10},
+    XiaomiVacuumProperty.WATER_TANK: {"siid": 2, "piid": 11},
     XiaomiVacuumProperty.BATTERY_LEVEL: {"siid": 3, "piid": 1},
     XiaomiVacuumProperty.CHARGING_STATUS: {"siid": 3, "piid": 2},
     XiaomiVacuumProperty.VOLUME: {"siid": 4, "piid": 2},
     XiaomiVacuumProperty.CHILD_LOCK: {"siid": 5, "piid": 1},
-    XiaomiVacuumProperty.MAIN_BRUSH_LEFT: {"siid": 9, "piid": 1},
-    XiaomiVacuumProperty.MAIN_BRUSH_TIME_LEFT: {"siid": 9, "piid": 2},
+    XiaomiVacuumProperty.MOP_PAD_LEFT: {"siid": 9, "piid": 1},
+    XiaomiVacuumProperty.MOP_PAD_TIME_LEFT: {"siid": 9, "piid": 2},
     XiaomiVacuumProperty.MAP_DATA: {"siid": 10, "piid": 1},
     XiaomiVacuumProperty.DND: {"siid": 11, "piid": 1},
-    XiaomiVacuumProperty.SIDE_BRUSH_LEFT: {"siid": 12, "piid": 1},
-    XiaomiVacuumProperty.SIDE_BRUSH_TIME_LEFT: {"siid": 12, "piid": 2},
-    XiaomiVacuumProperty.FILTER_LEFT: {"siid": 13, "piid": 1},
-    XiaomiVacuumProperty.FILTER_TIME_LEFT: {"siid": 13, "piid": 2},
-    XiaomiVacuumProperty.SENSOR_DIRTY_LEFT: {"siid": 14, "piid": 1},
-    XiaomiVacuumProperty.SENSOR_DIRTY_TIME_LEFT: {"siid": 14, "piid": 2},
-    XiaomiVacuumProperty.MOP_PAD_LEFT: {"siid": 18, "piid": 1},
-    XiaomiVacuumProperty.MOP_PAD_TIME_LEFT: {"siid": 18, "piid": 2},
-    XiaomiVacuumProperty.SECONDARY_FILTER_LEFT: {"siid": 19, "piid": 1},
-    XiaomiVacuumProperty.SECONDARY_FILTER_TIME_LEFT: {"siid": 19, "piid": 2},
+    XiaomiVacuumProperty.MAIN_BRUSH_LEFT: {"siid": 12, "piid": 1},
+    XiaomiVacuumProperty.MAIN_BRUSH_TIME_LEFT: {"siid": 12, "piid": 2},
+    XiaomiVacuumProperty.SIDE_BRUSH_LEFT: {"siid": 13, "piid": 1},
+    XiaomiVacuumProperty.SIDE_BRUSH_TIME_LEFT: {"siid": 13, "piid": 2},
+    XiaomiVacuumProperty.FILTER_LEFT: {"siid": 14, "piid": 1},
+    XiaomiVacuumProperty.FILTER_TIME_LEFT: {"siid": 14, "piid": 2},
+    XiaomiVacuumProperty.DETERGENT_LEFT: {"siid": 18, "piid": 1},
 }
 
 XiaomiVacuumD109glActionMapping = {
@@ -764,8 +762,65 @@ XiaomiVacuumD109glActionMapping = {
     XiaomiVacuumAction.START_AUTO_EMPTY: {"siid": 2, "aiid": 18},
 }
 
+# Device value -> library enum value. The d109gl reports its own numbering for
+# status, suction and sweep type, which does not line up with the Dreame values
+# the library enums are built from, so every one of them decodes to the wrong
+# thing without this. Verified against
+# urn:miot-spec-v2:device:vacuum:0000A006:xiaomi-d109gl:2.
+XiaomiVacuumD109glValueMapping = {
+    XiaomiVacuumProperty.STATUS: {
+        1: XiaomiVacuumState.IDLE,
+        2: XiaomiVacuumState.CHARGING,
+        3: XiaomiVacuumState.IDLE,  # BreakCharging
+        4: XiaomiVacuumState.SWEEPING,
+        5: XiaomiVacuumState.PAUSED,
+        6: XiaomiVacuumState.RETURNING,  # Go Charging
+        7: XiaomiVacuumState.RETURNING_WASHING,  # GoWash
+        8: XiaomiVacuumState.IDLE,  # Remote
+        9: XiaomiVacuumState.CHARGING_COMPLETED,  # Charged
+        10: XiaomiVacuumState.BUILDING,  # BuildingMap
+        11: XiaomiVacuumState.UPGRADING,  # Updating
+        # 12 and 14 are base-station work with the robot parked. DRYING is the
+        # closest library state that still resolves to "docked", which is the
+        # fact automations care about.
+        12: XiaomiVacuumState.DRYING,  # MultiTaskStationWorking
+        13: XiaomiVacuumState.RETURNING,  # MultiTaskRecharge
+        14: XiaomiVacuumState.DRYING,  # StationWorking
+        15: XiaomiVacuumState.ERROR,
+        16: XiaomiVacuumState.SWEEPING_AND_MOPPING,
+        17: XiaomiVacuumState.MOPPING,
+        18: XiaomiVacuumState.PAUSED,  # MappingPause
+        19: XiaomiVacuumState.IDLE,  # GoChargeBreak
+        20: XiaomiVacuumState.IDLE,  # WashBreak
+        21: XiaomiVacuumState.RETURNING,  # GoChargeBuildingMap
+    },
+    # Mode: 1 Silent, 2 Basic, 3 Strong, 4 Full Speed
+    XiaomiVacuumProperty.SUCTION_LEVEL: {
+        1: XiaomiVacuumSuctionLevel.QUIET,
+        2: XiaomiVacuumSuctionLevel.STANDARD,
+        3: XiaomiVacuumSuctionLevel.STRONG,
+        4: XiaomiVacuumSuctionLevel.TURBO,
+    },
+    # Mop Status is a plain bool on this model, not the Dreame tank enum.
+    XiaomiVacuumProperty.WATER_TANK: {
+        False: XiaomiVacuumWaterTank.NOT_INSTALLED,
+        True: XiaomiVacuumWaterTank.MOP_INSTALLED,
+    },
+    # Sweep Mop Type: 1 Sweep, 2 Mop, 3 Sweep Mop, 4 Sweep Before Mopping
+    XiaomiVacuumProperty.CLEANING_MODE: {
+        1: XiaomiVacuumCleaningMode.SWEEPING,
+        2: XiaomiVacuumCleaningMode.MOPPING,
+        3: XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING,
+        4: XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING,
+    },
+}
+
 XIAOMI_MODEL_MAPPINGS = {
     "xiaomi.vacuum.d109gl": (XiaomiVacuumD109glPropertyMapping, XiaomiVacuumD109glActionMapping),
+}
+
+XIAOMI_MODEL_VALUE_MAPPINGS = {
+    "xiaomi.vacuum.d109gl": XiaomiVacuumD109glValueMapping,
 }
 
 PROPERTY_AVAILABILITY: Final = {
