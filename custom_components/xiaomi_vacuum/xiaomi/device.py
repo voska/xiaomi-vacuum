@@ -10,6 +10,7 @@ from random import randrange
 from threading import Timer
 from typing import Any, Optional
 
+from . import json_map
 from .types import (
     PIID,
     DIID,
@@ -116,6 +117,10 @@ class XiaomiVacuumDevice:
     property_mapping: dict[XiaomiVacuumProperty, dict[str, int]] = XiaomiVacuumPropertyMapping
     action_mapping: dict[XiaomiVacuumAction, dict[str, int]] = XiaomiVacuumActionMapping
     value_mapping: dict[XiaomiVacuumProperty, dict[int, int]] = {}
+    json_map_key: bytes = None
+    json_map_object: str = None
+    json_map_image: bytes = None
+    json_map_rooms: dict = {}
 
     def __init__(
         self,
@@ -865,6 +870,69 @@ class XiaomiVacuumDevice:
         if prop is not None and prop.value in self.data:
             return self.data[prop.value]
         return None
+
+    def json_map_supported(self) -> bool:
+        """True for models that publish a JSON map object instead of Dreame frames."""
+        return bool(self.info and self.info.model and "xiaomi.vacuum." in self.info.model)
+
+    def update_json_map(self) -> bytes | None:
+        """Fetch, decrypt and render this model's JSON map. Returns PNG bytes."""
+        if not self.json_map_supported() or not self._protocol or not self._protocol.cloud:
+            return None
+
+        object_name = self.get_property(XiaomiVacuumProperty.MAP_DATA)
+        if not object_name:
+            # The map object name is not part of the normal property poll on
+            # these models, so read it straight from the device.
+            mapping = self.property_mapping.get(XiaomiVacuumProperty.MAP_DATA)
+            if mapping:
+                try:
+                    result = self._protocol.get_properties(
+                        [{"did": "map", "siid": mapping["siid"], "piid": mapping["piid"]}]
+                    )
+                    if result and result[0].get("code") == 0:
+                        object_name = result[0].get("value")
+                except Exception as ex:  # noqa: BLE001
+                    _LOGGER.debug("JSON map object name read failed: %s", ex)
+        if not object_name or not isinstance(object_name, str):
+            _LOGGER.debug("JSON map: no object name available yet")
+            return None
+        if object_name == self.json_map_object and self.json_map_image:
+            return self.json_map_image
+
+        cloud = self._protocol.cloud
+        try:
+            if not cloud.logged_in:
+                cloud.login()
+            if cloud.device_id is None and self.mac:
+                cloud.get_info(self.mac)
+
+            url = cloud.get_interim_file_url(object_name)
+            if not url:
+                return self.json_map_image
+            raw = cloud.get_file(url)
+            if not raw:
+                return self.json_map_image
+
+            if self.json_map_key is None:
+                self.json_map_key = json_map.derive_key(self.info.model, cloud.device_id)
+
+            decoded = json_map.decrypt_map(raw, self.json_map_key)
+            if not decoded:
+                return self.json_map_image
+
+            image = json_map.render_map(decoded)
+            if image:
+                self.json_map_object = object_name
+                self.json_map_image = image
+                self.json_map_rooms = json_map.room_names(decoded)
+                _LOGGER.debug(
+                    "JSON map rendered: %sx%s, %s rooms",
+                    decoded.get("width"), decoded.get("height"), len(self.json_map_rooms),
+                )
+        except Exception as ex:  # noqa: BLE001 - a bad map must not break the poll
+            _LOGGER.debug("JSON map update failed: %s", ex)
+        return self.json_map_image
 
     def _to_library_value(self, did: int, value: Any) -> Any:
         """Translate a raw device value into the value the library enums use."""
