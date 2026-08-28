@@ -123,6 +123,9 @@ class XiaomiVacuumDevice:
     json_map_image: bytes = None
     json_map_rooms: dict = {}
     json_map_name: str = None
+    json_map_current_room: str = None
+    json_map_current_room_id: int = None
+    json_map_cloud_ready: bool = False
 
     def __init__(
         self,
@@ -925,8 +928,12 @@ class XiaomiVacuumDevice:
         try:
             if not cloud.logged_in:
                 cloud.login()
-            if cloud.device_id is None and self.mac:
+            if not self.json_map_cloud_ready and self.mac:
+                # get_info also sets the uid and the _v3 flag that selects the
+                # right file-url endpoint. Gating it on device_id being unset
+                # meant the flag stayed false and every download returned None.
                 cloud.get_info(self.mac)
+                self.json_map_cloud_ready = True
 
             url = cloud.get_interim_file_url(object_name)
             if not url:
@@ -948,6 +955,7 @@ class XiaomiVacuumDevice:
                 self.json_map_image = image
                 self.json_map_rooms = json_map.room_names(decoded)
                 self.json_map_name = json_map.map_label(decoded)
+                self.json_map_current_room_id, self.json_map_current_room = json_map.current_room(decoded)
                 _LOGGER.debug(
                     "JSON map rendered: %sx%s, %s rooms",
                     decoded.get("width"), decoded.get("height"), len(self.json_map_rooms),

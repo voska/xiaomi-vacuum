@@ -85,6 +85,39 @@ def decrypt_map(raw: bytes, key: bytes) -> dict[str, Any] | None:
         return None
 
 
+def current_room(map_data: dict[str, Any]) -> tuple[int | None, str | None]:
+    """The room the robot is standing in.
+
+    Derived rather than reported: the occupancy grid stores the room id in every
+    cell, so the robot's own position indexes straight into it.
+    """
+    try:
+        width = int(map_data["width"])
+        height = int(map_data["height"])
+        position = map_data.get("position") or {}
+        resolution = int(map_data.get("resolution") or 0)
+        if position and resolution:
+            gx = int((int(position["x"]) - int(map_data["origin_x"])) / resolution)
+            gy = int((int(position["y"]) - int(map_data["origin_y"])) / resolution)
+        elif map_data.get("have_pile"):
+            # A docked robot reports no live position. It is sitting on the pile,
+            # so the pile's cell is where it is - reported, not guessed.
+            gx = int(map_data.get("pile_x", -1))
+            gy = int(map_data.get("pile_y", -1))
+        else:
+            return None, None
+        if not (0 <= gx < width and 0 <= gy < height):
+            return None, None
+        grid = zlib.decompress(base64.b64decode(map_data["map_data"]))
+        value = grid[gy * width + gx]
+        if value in (GRID_EMPTY, GRID_WALL):
+            return None, None
+        return value, room_names(map_data).get(value, f"Room {value}")
+    except Exception as ex:  # noqa: BLE001
+        _LOGGER.debug("Current room lookup failed: %s", ex)
+        return None, None
+
+
 def map_label(map_data: dict[str, Any]) -> str:
     """A stable, human name for this map.
 
