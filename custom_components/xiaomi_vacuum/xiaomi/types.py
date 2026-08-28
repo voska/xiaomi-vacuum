@@ -562,6 +562,7 @@ class XiaomiVacuumAction(IntEnum):
     STREAM_AUDIO = 27
     STREAM_PROPERTY = 28
     STREAM_CODE = 29
+    START_ROOM_SWEEP = 30
 
 
 # Xiaomi Vacuum property mapping
@@ -769,6 +770,9 @@ XiaomiVacuumD109glActionMapping = {
     XiaomiVacuumAction.RESET_SIDE_BRUSH: {"siid": 13, "aiid": 1},
     XiaomiVacuumAction.RESET_FILTER: {"siid": 14, "aiid": 1},
     XiaomiVacuumAction.RESET_DETERGENT: {"siid": 18, "aiid": 1},
+    # Start Vacuum Room Sweep. The extra "piid" is this action's own input
+    # property (Vacuum Room IDs), which clean_segment fills with the room ids.
+    XiaomiVacuumAction.START_ROOM_SWEEP: {"siid": 2, "aiid": 16, "piid": 15},
 }
 
 # Device value -> library enum value. The d109gl reports its own numbering for

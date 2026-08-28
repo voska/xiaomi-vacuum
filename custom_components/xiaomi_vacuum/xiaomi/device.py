@@ -1474,6 +1474,26 @@ class XiaomiVacuumDevice:
         if not isinstance(selected_segments, list):
             selected_segments = [selected_segments]
 
+        # Models that expose a dedicated room-sweep action do not understand the
+        # Dreame customized-cleaning payload below. They take the room ids as a
+        # JSON string on the action's own input property, in the same shape the
+        # device reports back in Current Cleaning Config, e.g. {"rooms":[3,13]}.
+        # Observed on xiaomi.vacuum.d109gl during an app-initiated room clean.
+        room_sweep = self.action_mapping.get(XiaomiVacuumAction.START_ROOM_SWEEP)
+        if room_sweep and "piid" in room_sweep:
+            rooms = [int(segment_id) for segment_id in selected_segments]
+            if not self.status.started or self.status.paused:
+                self._update_status(XiaomiVacuumTaskStatus.SEGMENT_CLEANING, XiaomiVacuumStatus.SEGMENT_CLEANING)
+            return self.call_action(
+                XiaomiVacuumAction.START_ROOM_SWEEP,
+                [
+                    {
+                        "piid": room_sweep["piid"],
+                        "value": json.dumps({"rooms": rooms}, separators=(",", ":")),
+                    }
+                ],
+            )
+
         if not suction_level or suction_level == "":
             suction_level = self.status.suction_level.value
 
