@@ -741,6 +741,7 @@ class XiaomiVacuumDevice:
             if self._map_manager:
                 self._map_manager.set_aes_iv("OFULk9To37qRdXY3")
                 _LOGGER.info("Map encryption IV set for %s", self.info.model)
+                self._map_manager.set_request_map_action(action_map.get(XiaomiVacuumAction.REQUEST_MAP))
 
         self._last_settings_request = time.time()
         self._last_map_list_request = self._last_settings_request

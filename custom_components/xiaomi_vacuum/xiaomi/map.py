@@ -294,8 +294,13 @@ class XiaomiMapVacuumMapManager:
         ]
 
         try:
+            mapping = getattr(
+                self, "_request_map_action", XiaomiVacuumActionMapping[XiaomiVacuumAction.REQUEST_MAP]
+            )
+            if mapping is None:
+                _LOGGER.debug("Model has no REQUEST_MAP action, not sending a map request")
+                return None
             _LOGGER.info("Request map from device %s", payload)
-            mapping = XiaomiVacuumActionMapping[XiaomiVacuumAction.REQUEST_MAP]
             return self._protocol.action(mapping["siid"], mapping["aiid"], payload, 0)
         except Exception as ex:
             _LOGGER.warning("Send request map failed: %s", ex)
@@ -985,6 +990,13 @@ class XiaomiMapVacuumMapManager:
     def set_aes_iv(self, aes_iv: str) -> None:
         if aes_iv:
             self._aes_iv = aes_iv
+
+    def set_request_map_action(self, mapping: dict[str, Any] | None) -> None:
+        """Pin the map-request action to the connected model's own mapping.
+
+        None means the model exposes no map-request action, so none is sent.
+        """
+        self._request_map_action = mapping
 
     def set_vslam_map(self) -> None:
         self._vslam_map = True
