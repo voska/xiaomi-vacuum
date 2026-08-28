@@ -36,9 +36,13 @@ class XiaomiVacuumEntityDescription:
     property_key: XiaomiVacuumProperty = None
     action_key: XiaomiVacuumAction = None
     exists_fn: Callable[[object, object], bool] = lambda description, device: bool(
-        (description.action_key is not None and description.action_key in device.action_mapping)
-        or description.property_key is None
-        or description.property_key.value in device.data
+        # An action-keyed entity must have its action in the connected model's
+        # mapping. Previously the `property_key is None` clause rescued it, so
+        # buttons for actions the model does not expose were still created and
+        # then raised InvalidActionException when pressed.
+        description.action_key in device.action_mapping
+        if description.action_key is not None
+        else (description.property_key is None or description.property_key.value in device.data)
     )
     value_fn: Callable[[object, object], Any] = None
     format_fn: Callable[[str, object], Any] = None
