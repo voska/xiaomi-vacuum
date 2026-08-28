@@ -832,6 +832,26 @@ XIAOMI_MODEL_MAPPINGS = {
     "xiaomi.vacuum.d109gl": (XiaomiVacuumD109glPropertyMapping, XiaomiVacuumD109glActionMapping),
 }
 
+# The STATUS property feeds two different enums: XiaomiVacuumState (which drives
+# vacuum.state) and XiaomiVacuumStatus (which drives the status sensor). A model
+# value map can only satisfy one of them, so derive the second from the first.
+XIAOMI_STATE_TO_STATUS = {
+    XiaomiVacuumState.IDLE: XiaomiVacuumStatus.IDLE,
+    XiaomiVacuumState.SWEEPING: XiaomiVacuumStatus.CLEANING,
+    XiaomiVacuumState.MOPPING: XiaomiVacuumStatus.CLEANING,
+    XiaomiVacuumState.SWEEPING_AND_MOPPING: XiaomiVacuumStatus.CLEANING,
+    XiaomiVacuumState.BUILDING: XiaomiVacuumStatus.CLEANING,
+    XiaomiVacuumState.PAUSED: XiaomiVacuumStatus.PAUSED,
+    XiaomiVacuumState.ERROR: XiaomiVacuumStatus.ERROR,
+    XiaomiVacuumState.RETURNING: XiaomiVacuumStatus.BACK_HOME,
+    XiaomiVacuumState.RETURNING_WASHING: XiaomiVacuumStatus.BACK_HOME,
+    XiaomiVacuumState.CHARGING: XiaomiVacuumStatus.CHARGING,
+    XiaomiVacuumState.CHARGING_COMPLETED: XiaomiVacuumStatus.CHARGING,
+    XiaomiVacuumState.DRYING: XiaomiVacuumStatus.CHARGING,
+    XiaomiVacuumState.WASHING: XiaomiVacuumStatus.CHARGING,
+    XiaomiVacuumState.UPGRADING: XiaomiVacuumStatus.OTA,
+}
+
 XIAOMI_MODEL_VALUE_MAPPINGS = {
     "xiaomi.vacuum.d109gl": XiaomiVacuumD109glValueMapping,
 }

@@ -20,6 +20,7 @@ from .types import (
     XiaomiVacuumAction,
     XIAOMI_MODEL_VALUE_MAPPINGS,
     XiaomiVacuumActionMapping,
+    XIAOMI_STATE_TO_STATUS,
     XiaomiVacuumChargingStatus,
     XiaomiVacuumTaskStatus,
     XiaomiVacuumState,
@@ -2551,6 +2552,12 @@ class XiaomiVacuumDeviceStatus:
     def status(self) -> XiaomiVacuumStatus:
         """Return status of the device."""
         value = self._get_property(XiaomiVacuumProperty.STATUS)
+        if self._device.value_mapping:
+            # The raw value was already translated into XiaomiVacuumState, so
+            # reading it as a XiaomiVacuumStatus would report nonsense.
+            if value in XiaomiVacuumState._value2member_map_:
+                return XIAOMI_STATE_TO_STATUS.get(XiaomiVacuumState(value), XiaomiVacuumStatus.UNKNOWN)
+            return XiaomiVacuumStatus.UNKNOWN
         if value is not None and value in XiaomiVacuumStatus._value2member_map_:
             return XiaomiVacuumStatus(value)
         _LOGGER.debug("STATUS not supported: %s", value)
