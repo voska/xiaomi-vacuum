@@ -17,6 +17,7 @@ from .types import (
     XiaomiVacuumProperty,
     XiaomiVacuumPropertyMapping,
     XiaomiVacuumAction,
+    XIAOMI_MODEL_VALUE_MAPPINGS,
     XiaomiVacuumActionMapping,
     XiaomiVacuumChargingStatus,
     XiaomiVacuumTaskStatus,
@@ -114,6 +115,7 @@ class XiaomiVacuumDevice:
 
     property_mapping: dict[XiaomiVacuumProperty, dict[str, int]] = XiaomiVacuumPropertyMapping
     action_mapping: dict[XiaomiVacuumAction, dict[str, int]] = XiaomiVacuumActionMapping
+    value_mapping: dict[XiaomiVacuumProperty, dict[int, int]] = {}
 
     def __init__(
         self,
@@ -238,33 +240,46 @@ class XiaomiVacuumDevice:
             properties.remove(XiaomiVacuumProperty.STREAM_SPACE)
 
         property_list = []
+        property_ids: dict[tuple[int, int], int] = {}
         for prop in properties:
             if prop in self.property_mapping:
                 mapping = self.property_mapping[prop]
                 # Do not include properties that are not exists on the device
                 if "aiid" not in mapping and (not self._ready or prop.value in self.data):
                     property_list.append({"did": str(prop.value), **mapping})
+                    property_ids[(mapping["siid"], mapping["piid"])] = prop.value
 
         props = property_list.copy()
         results = []
         while props:
             result = self._protocol.get_properties(props[:15])
-            if result is not None:
-                results.extend(result)
-                props[:] = props[15:]
+            if result is None:
+                _LOGGER.debug("Property request returned nothing, ending this cycle")
+                break
+            results.extend(result)
+            props[:] = props[15:]
 
         changed = False
         callbacks = []
         for prop in results:
             if prop["code"] == 0 and "value" in prop:
-                did = int(prop["did"])
                 value = prop["value"]
 
-                try:
-                    XiaomiVacuumProperty(did)
-                except ValueError:
-                    _LOGGER.debug("Skipping unknown property: %s = %s", did, value)
-                    continue
+                # Resolve on siid/piid rather than the echoed did: some devices
+                # (xiaomi.vacuum.d109gl among them) answer with their own
+                # numeric device id instead of the did that was sent, which
+                # makes every value unmatchable. Fall back to did for devices
+                # that echo it correctly.
+                did = property_ids.get((prop.get("siid"), prop.get("piid")))
+                if did is None:
+                    try:
+                        did = int(prop["did"])
+                        XiaomiVacuumProperty(did)
+                    except (KeyError, TypeError, ValueError):
+                        _LOGGER.debug("Skipping unmatched property: %s", prop)
+                        continue
+
+                value = self._to_library_value(did, value)
 
                 if did in self._dirty_data:
                     if self._dirty_data[did] != value:
@@ -737,6 +752,7 @@ class XiaomiVacuumDevice:
             prop_map, action_map = XIAOMI_MODEL_MAPPINGS[self.info.model]
             self.property_mapping = prop_map
             self.action_mapping = action_map
+            self.value_mapping = XIAOMI_MODEL_VALUE_MAPPINGS.get(self.info.model, {})
             _LOGGER.info("Using custom mappings for %s", self.info.model)
             if self._map_manager:
                 self._map_manager.set_aes_iv("OFULk9To37qRdXY3")
@@ -850,6 +866,26 @@ class XiaomiVacuumDevice:
             return self.data[prop.value]
         return None
 
+    def _to_library_value(self, did: int, value: Any) -> Any:
+        """Translate a raw device value into the value the library enums use."""
+        if self.value_mapping:
+            try:
+                values = self.value_mapping.get(XiaomiVacuumProperty(did))
+            except ValueError:
+                return value
+            if values and value in values:
+                return int(values[value])
+        return value
+
+    def _to_device_value(self, prop: XiaomiVacuumProperty, value: Any) -> Any:
+        """Translate a library value back into what the device expects."""
+        values = self.value_mapping.get(prop) if self.value_mapping else None
+        if values:
+            for device_value, library_value in values.items():
+                if int(library_value) == value:
+                    return device_value
+        return value
+
     def set_property(self, prop: XiaomiVacuumProperty, value: Any) -> bool:
         """Sets property value using the existing property mapping and notify listeners
         Property must be set on memory first and notify its listeners because device does not return new value immediately.
@@ -863,7 +899,9 @@ class XiaomiVacuumDevice:
 
             try:
                 mapping = self.property_mapping[prop]
-                result = self._protocol.set_property(mapping["siid"], mapping["piid"], value)
+                result = self._protocol.set_property(
+                    mapping["siid"], mapping["piid"], self._to_device_value(prop, value)
+                )
 
                 if result and result[0]["code"] != 0:
                     _LOGGER.error("Property not updated: %s: %s -> %s", prop, current_value, value)

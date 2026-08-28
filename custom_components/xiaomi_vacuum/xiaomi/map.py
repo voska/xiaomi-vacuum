@@ -920,6 +920,10 @@ class XiaomiMapVacuumMapManager:
     def schedule_update(self, wait: float = None) -> None:
         if not wait:
             wait = self._update_interval
+        if wait >= 0 and getattr(self, "_request_map_action", True) is None:
+            # Without a map-request action nothing this loop does can make a map
+            # arrive sooner, so do not respin at the live-cleaning cadence.
+            wait = max(wait, 60)
         if self._update_timer is not None:
             self._update_timer.cancel()
             del self._update_timer
