@@ -116,7 +116,10 @@ BUTTONS: tuple[ButtonEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         available_fn=lambda device: device.status.mapping_available,
         action_fn=lambda device: device.start_fast_mapping(),
-        exists_fn=lambda description, device: device.status.lidar_navigation,
+        # Mapping actions are not wired for models that publish a JSON map, so
+        # the button would raise InvalidActionException if pressed.
+        exists_fn=lambda description, device: device.status.lidar_navigation
+        and not device.json_map_supported(),
     ),
     XiaomiVacuumButtonEntityDescription(
         key="start_mapping",
@@ -124,8 +127,9 @@ BUTTONS: tuple[ButtonEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         available_fn=lambda device: device.status.mapping_available,
         action_fn=lambda device: device.start_mapping(),
+        exists_fn=lambda description, device: device.status.lidar_navigation
+        and not device.json_map_supported(),
         entity_registry_enabled_default=False,
-        exists_fn=lambda description, device: device.status.lidar_navigation,
     ),
     XiaomiVacuumButtonEntityDescription(
         name="Self-Clean",
