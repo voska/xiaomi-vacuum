@@ -579,7 +579,10 @@ class XiaomiVacuumCloudProtocol:
 
         while retries < retry_count + 1:
             try:
-                response = self._session.post(url, headers=headers, cookies=cookies, data=fields, timeout=5)
+                # Xiaomi's regional API regularly takes longer than 5s. At that
+                # timeout the device trips the 3-strike availability check and
+                # every entity drops out, which reads as the whole device dying.
+                response = self._session.post(url, headers=headers, cookies=cookies, data=fields, timeout=20)
                 break
             except Exception as ex:
                 retries = retries + 1
