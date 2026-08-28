@@ -43,6 +43,8 @@ ROOM_COLORS = [
     (180, 165, 220), (140, 210, 205), (240, 175, 130), (200, 200, 160),
     (170, 190, 230), (215, 180, 150), (150, 195, 175), (225, 195, 215),
 ]
+ROUTE_COLOR = (255, 255, 255, 235)
+ROUTE_WIDTH = 3
 SCALE = 4
 
 
@@ -125,6 +127,7 @@ def render_map(map_data: dict[str, Any]) -> bytes | None:
 
         image = image.resize((width * SCALE, height * SCALE), Image.NEAREST)
         draw = ImageDraw.Draw(image)
+        resolution = int(map_data.get("resolution") or 0)
 
         if map_data.get("have_pile"):
             px = int(map_data.get("pile_x", 0)) * SCALE
@@ -132,8 +135,21 @@ def render_map(map_data: dict[str, Any]) -> bytes | None:
             draw.ellipse([px - 11, py - 11, px + 11, py + 11], fill=(35, 45, 60, 255))
             draw.ellipse([px - 5, py - 5, px + 5, py + 5], fill=(250, 250, 250, 255))
 
+        # Cleaning route the robot actually drove, in world mm like position.
+        paths = (map_data.get("paths") or {}).get("points") or []
+        if paths and resolution:
+            route = [
+                (
+                    (int(pt["x"]) - int(map_data["origin_x"])) / resolution * SCALE,
+                    (int(pt["y"]) - int(map_data["origin_y"])) / resolution * SCALE,
+                )
+                for pt in paths
+                if "x" in pt and "y" in pt
+            ]
+            if len(route) > 1:
+                draw.line(route, fill=ROUTE_COLOR, width=ROUTE_WIDTH, joint="curve")
+
         position = map_data.get("position") or {}
-        resolution = int(map_data.get("resolution") or 0)
         if position and resolution:
             rx = (int(position["x"]) - int(map_data["origin_x"])) / resolution * SCALE
             ry = (int(position["y"]) - int(map_data["origin_y"])) / resolution * SCALE

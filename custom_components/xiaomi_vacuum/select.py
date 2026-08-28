@@ -223,7 +223,8 @@ SELECTS: tuple[XiaomiVacuumSelectEntityDescription, ...] = (
             if device.status.selected_map and device.status.selected_map.rotation is not None
             else ""
         ),
-        exists_fn=lambda description, device: device.status.map_available,
+        exists_fn=lambda description, device: device.status.map_available
+        and not device.json_map_supported(),
         available_fn=lambda device: bool(
             device.status.selected_map is not None
             and device.status.selected_map.rotation is not None
@@ -242,7 +243,8 @@ SELECTS: tuple[XiaomiVacuumSelectEntityDescription, ...] = (
             if device.status.selected_map and device.status.selected_map.map_name
             else ""
         ),
-        exists_fn=lambda description, device: device.status.map_available,  # and device.status.lidar_navigation,
+        exists_fn=lambda description, device: device.status.map_available
+        and not device.json_map_supported(),
         available_fn=lambda device: bool(
             device.status.multi_map
             and not device.status.fast_mapping
