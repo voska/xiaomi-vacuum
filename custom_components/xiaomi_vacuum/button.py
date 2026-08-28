@@ -90,7 +90,9 @@ BUTTONS: tuple[ButtonEntityDescription, ...] = (
         icon="mdi:chart-bubble",
         entity_category=EntityCategory.DIAGNOSTIC,
         exists_fn=lambda description, device: bool(
-            XiaomiVacuumEntityDescription().exists_fn(description, device) and device.status.detergent_life is not None
+            XiaomiVacuumEntityDescription().exists_fn(description, device)
+            and device.status.detergent_life is not None
+            and not device.json_map_supported()
         ),
     ),
     XiaomiVacuumButtonEntityDescription(

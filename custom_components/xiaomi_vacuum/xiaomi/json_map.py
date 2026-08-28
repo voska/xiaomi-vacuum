@@ -85,6 +85,20 @@ def decrypt_map(raw: bytes, key: bytes) -> dict[str, Any] | None:
         return None
 
 
+def map_label(map_data: dict[str, Any]) -> str:
+    """A stable, human name for this map.
+
+    Used as the camera's state. It must not be a timestamp: the map object is
+    re-fetched on every poll while cleaning, and a timestamp state turns the
+    logbook into a wall of meaningless entries.
+    """
+    name = (map_data.get("map_name") or "").strip()
+    if name:
+        return name
+    map_id = map_data.get("map_id")
+    return f"Map {map_id}" if map_id is not None else "Map"
+
+
 def room_names(map_data: dict[str, Any]) -> dict[int, str]:
     """Room id -> name, for the rooms the device knows about."""
     names: dict[int, str] = {}
