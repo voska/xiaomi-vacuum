@@ -44,7 +44,8 @@ SENSORS: tuple[XiaomiVacuumSensorEntityDescription, ...] = (
         icon="mdi:map-clock",
         native_unit_of_measurement=UNIT_MINUTES,
         available_fn=lambda device: device.status.fast_mapping,
-        exists_fn=lambda description, device: device.status.lidar_navigation,
+        exists_fn=lambda description, device: device.status.lidar_navigation
+        and not device.json_map_supported(),
     ),
     XiaomiVacuumSensorEntityDescription(
         property_key=XiaomiVacuumProperty.CLEANED_AREA,
@@ -292,7 +293,8 @@ SENSORS: tuple[XiaomiVacuumSensorEntityDescription, ...] = (
         key="current_room",
         icon="mdi:home-map-marker",
         value_fn=lambda value, device: device.status.current_room.name,
-        exists_fn=lambda description, device: device.status.map_available and device.status.lidar_navigation,
+        exists_fn=lambda description, device: (device.status.map_available and device.status.lidar_navigation)
+        and not device.json_map_supported(),
         available_fn=lambda device: bool(device.status.current_room is not None and not device.status.fast_mapping),
         attrs_fn=lambda device: {
             "room_id": device.status.current_room.segment_id,
@@ -305,7 +307,8 @@ SENSORS: tuple[XiaomiVacuumSensorEntityDescription, ...] = (
         icon="mdi:clipboard-text-clock",
         device_class=SensorDeviceClass.TIMESTAMP,
         value_fn=lambda value, device: device.status.last_cleaning_time,
-        exists_fn=lambda description, device: device.status.map_available,
+        exists_fn=lambda description, device: (device.status.map_available)
+        and not device.json_map_supported(),
         available_fn=lambda device: bool(device.status.last_cleaning_time is not None),
         attrs_fn=lambda device: device.status.cleaning_history,
         entity_category=EntityCategory.DIAGNOSTIC,
