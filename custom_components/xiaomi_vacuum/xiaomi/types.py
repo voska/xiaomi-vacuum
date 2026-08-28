@@ -760,6 +760,15 @@ XiaomiVacuumD109glActionMapping = {
     XiaomiVacuumAction.LOCATE: {"siid": 6, "aiid": 1},
     XiaomiVacuumAction.START_WASHING: {"siid": 2, "aiid": 19},
     XiaomiVacuumAction.START_AUTO_EMPTY: {"siid": 2, "aiid": 18},
+    # Consumable resets, each on the service that consumable actually lives on.
+    # RESET_SENSOR, RESET_SECONDARY_FILTER and RESET_SILVER_ION are deliberately
+    # absent: this model has no dirt-sensor, secondary-filter or silver-ion
+    # service, so their buttons stay inert rather than firing something else.
+    XiaomiVacuumAction.RESET_MOP_PAD: {"siid": 9, "aiid": 1},
+    XiaomiVacuumAction.RESET_MAIN_BRUSH: {"siid": 12, "aiid": 1},
+    XiaomiVacuumAction.RESET_SIDE_BRUSH: {"siid": 13, "aiid": 1},
+    XiaomiVacuumAction.RESET_FILTER: {"siid": 14, "aiid": 1},
+    XiaomiVacuumAction.RESET_DETERGENT: {"siid": 18, "aiid": 1},
 }
 
 # Device value -> library enum value. The d109gl reports its own numbering for
