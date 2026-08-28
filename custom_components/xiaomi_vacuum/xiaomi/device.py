@@ -872,6 +872,25 @@ class XiaomiVacuumDevice:
             return self.data[prop.value]
         return None
 
+    def _room_map_uid(self, room_sweep: dict[str, int]) -> int | None:
+        """Read map_uid from the device's Room Information property.
+
+        A room sweep whose payload omits map_uid is accepted by the API and then
+        silently ignored by the robot, so this is not optional.
+        """
+        info_piid = room_sweep.get("info_piid")
+        if not info_piid:
+            return None
+        try:
+            result = self._protocol.get_properties(
+                [{"did": "rooms", "siid": room_sweep["siid"], "piid": info_piid}]
+            )
+            if result and result[0].get("code") == 0 and result[0].get("value"):
+                return json.loads(result[0]["value"]).get("map_uid")
+        except Exception as ex:  # noqa: BLE001
+            _LOGGER.debug("Room information read failed: %s", ex)
+        return None
+
     def json_map_supported(self) -> bool:
         """True for models that publish a JSON map object instead of Dreame frames."""
         return bool(self.info and self.info.model and "xiaomi.vacuum." in self.info.model)
@@ -1551,14 +1570,19 @@ class XiaomiVacuumDevice:
         room_sweep = self.action_mapping.get(XiaomiVacuumAction.START_ROOM_SWEEP)
         if room_sweep and "piid" in room_sweep:
             rooms = [int(segment_id) for segment_id in selected_segments]
+            payload = {"rooms": rooms}
+            map_uid = self._room_map_uid(room_sweep)
+            if map_uid is not None:
+                payload["map_uid"] = map_uid
             if not self.status.started or self.status.paused:
                 self._update_status(XiaomiVacuumTaskStatus.SEGMENT_CLEANING, XiaomiVacuumStatus.SEGMENT_CLEANING)
+            _LOGGER.info("Room sweep payload: %s", payload)
             return self.call_action(
                 XiaomiVacuumAction.START_ROOM_SWEEP,
                 [
                     {
                         "piid": room_sweep["piid"],
-                        "value": json.dumps({"rooms": rooms}, separators=(",", ":")),
+                        "value": json.dumps(payload, separators=(",", ":")),
                     }
                 ],
             )

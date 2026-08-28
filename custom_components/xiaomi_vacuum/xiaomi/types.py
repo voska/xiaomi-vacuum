@@ -772,7 +772,10 @@ XiaomiVacuumD109glActionMapping = {
     XiaomiVacuumAction.RESET_DETERGENT: {"siid": 18, "aiid": 1},
     # Start Vacuum Room Sweep. The extra "piid" is this action's own input
     # property (Vacuum Room IDs), which clean_segment fills with the room ids.
-    XiaomiVacuumAction.START_ROOM_SWEEP: {"siid": 2, "aiid": 16, "piid": 15},
+    # "piid" is the action's room-ids input; "info_piid" is the Room Information
+    # property the map_uid has to be read from - the device silently discards a
+    # room sweep whose payload omits map_uid.
+    XiaomiVacuumAction.START_ROOM_SWEEP: {"siid": 2, "aiid": 16, "piid": 15, "info_piid": 16},
 }
 
 # Device value -> library enum value. The d109gl reports its own numbering for
