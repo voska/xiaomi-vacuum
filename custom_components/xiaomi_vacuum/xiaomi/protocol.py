@@ -302,7 +302,7 @@ class XiaomiVacuumCloudProtocol:
                         response = self._session.post(
                             self.verification_url.replace(
                                 path,
-                                ("/identity/auth/verifyPhone" if flag == 4 else "/identity/auth/verifyEmail"),
+                                ("identity/auth/verifyPhone" if flag == 4 else "identity/auth/verifyEmail"),
                             ),
                             params={
                                 "_dc": int(time.time() * 1000),
