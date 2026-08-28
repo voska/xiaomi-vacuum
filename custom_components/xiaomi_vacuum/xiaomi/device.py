@@ -122,6 +122,7 @@ class XiaomiVacuumDevice:
     json_map_object: str = None
     json_map_image: bytes = None
     json_map_rooms: dict = {}
+    json_map_name: str = None
 
     def __init__(
         self,
@@ -946,6 +947,7 @@ class XiaomiVacuumDevice:
                 self.json_map_object = object_name
                 self.json_map_image = image
                 self.json_map_rooms = json_map.room_names(decoded)
+                self.json_map_name = json_map.map_label(decoded)
                 _LOGGER.debug(
                     "JSON map rendered: %sx%s, %s rooms",
                     decoded.get("width"), decoded.get("height"), len(self.json_map_rooms),

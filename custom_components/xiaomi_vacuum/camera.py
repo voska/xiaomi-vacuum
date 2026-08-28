@@ -240,8 +240,7 @@ class XiaomiVacuumCameraEntity(XiaomiVacuumEntity, Camera):
                 if image:
                     self._image = image
                     self._default_map = False
-                    self._state = datetime.now()
-                    self.async_write_ha_state()
+                    self._publish_map_state()
             return self._image
 
         if self._should_poll is True:
@@ -290,7 +289,18 @@ class XiaomiVacuumCameraEntity(XiaomiVacuumEntity, Camera):
         if image:
             self._image = image
             self._default_map = False
-            self._state = datetime.now()
+            self._publish_map_state()
+
+    def _publish_map_state(self) -> None:
+        """Set the camera state to the map's name, and only when it changes.
+
+        The map object is re-fetched on every poll while the robot is cleaning.
+        A timestamp state therefore rewrote itself every couple of seconds and
+        filled the logbook with entries carrying no information.
+        """
+        state = self.device.json_map_name or "Map"
+        if state != self._state:
+            self._state = state
             self.async_write_ha_state()
 
     def update(self) -> None:
