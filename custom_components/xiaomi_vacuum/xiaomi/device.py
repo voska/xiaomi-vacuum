@@ -335,6 +335,7 @@ class XiaomiVacuumDevice:
 
     def _update_status(self, task_status: XiaomiVacuumTaskStatus, status: XiaomiVacuumStatus) -> None:
         """Update status properties on memory for map renderer to update the image before action is sent to the device."""
+        new_state = XiaomiVacuumState.IDLE
         if task_status is not XiaomiVacuumTaskStatus.COMPLETED:
             new_state = XiaomiVacuumState.SWEEPING
             if self.status.cleaning_mode is XiaomiVacuumCleaningMode.MOPPING:
@@ -346,7 +347,8 @@ class XiaomiVacuumDevice:
         if status is XiaomiVacuumStatus.STANDBY:
             self._update_property(XiaomiVacuumProperty.STATE, XiaomiVacuumState.IDLE.value)
 
-        self._update_property(XiaomiVacuumProperty.STATUS, status.value)
+        # Models with a value mapping keep STATUS as a translated XiaomiVacuumState.
+        self._update_property(XiaomiVacuumProperty.STATUS, new_state.value if self.value_mapping else status.value)
         self._update_property(XiaomiVacuumProperty.TASK_STATUS, task_status.value)
 
     def _update_property(self, prop: XiaomiVacuumProperty, value: Any) -> Any:
@@ -2617,14 +2619,10 @@ class XiaomiVacuumDeviceStatus:
 
     def _derive_task_status_from_status(self) -> XiaomiVacuumTaskStatus:
         """Derive task status from STATUS for devices that don't report TASK_STATUS directly."""
-        status_value = self._get_property(XiaomiVacuumProperty.STATUS)
-        if status_value is None:
+        # self.status already undoes a model's value mapping.
+        status = self.status
+        if status is XiaomiVacuumStatus.UNKNOWN:
             return XiaomiVacuumTaskStatus.UNKNOWN
-
-        if status_value not in XiaomiVacuumStatus._value2member_map_:
-            return XiaomiVacuumTaskStatus.UNKNOWN
-
-        status = XiaomiVacuumStatus(status_value)
 
         if status is XiaomiVacuumStatus.CLEANING:
             return XiaomiVacuumTaskStatus.AUTO_CLEANING
@@ -2794,6 +2792,14 @@ class XiaomiVacuumDeviceStatus:
         """Derive state from STATUS for devices that don't report STATE directly (e.g. X20 Max)."""
         status_value = self._get_property(XiaomiVacuumProperty.STATUS)
         if status_value is None:
+            return XiaomiVacuumState.UNKNOWN
+
+        # The model's value mapping already translated STATUS into a
+        # XiaomiVacuumState; reading it as a XiaomiVacuumStatus would show a
+        # sweeping robot as paused and a paused one as returning.
+        if self._device.value_mapping:
+            if status_value in XiaomiVacuumState._value2member_map_:
+                return XiaomiVacuumState(status_value)
             return XiaomiVacuumState.UNKNOWN
 
         if status_value not in XiaomiVacuumStatus._value2member_map_:
