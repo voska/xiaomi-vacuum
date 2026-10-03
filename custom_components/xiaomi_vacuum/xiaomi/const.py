@@ -5,6 +5,7 @@ from .types import (
     XiaomiVacuumState,
     XiaomiVacuumWaterTank,
     XiaomiVacuumCarpetSensitivity,
+    XiaomiVacuumSweepRoute,
     XiaomiVacuumStatus,
     XiaomiVacuumErrorCode,
     XiaomiVacuumRelocationStatus,
@@ -38,6 +39,11 @@ MOP_PAD_HUMIDITY_WET: Final = "wet"
 CLEANING_MODE_SWEEPING: Final = "sweeping"
 CLEANING_MODE_MOPPING: Final = "mopping"
 CLEANING_MODE_SWEEPING_AND_MOPPING: Final = "sweeping_and_mopping"
+CLEANING_MODE_MOPPING_AFTER_SWEEPING: Final = "mopping_after_sweeping"
+
+SWEEP_ROUTE_QUICK: Final = "quick"
+SWEEP_ROUTE_DAILY: Final = "daily"
+SWEEP_ROUTE_CAREFUL: Final = "careful"
 
 STATE_UNKNOWN: Final = "unknown"
 STATE_SWEEPING: Final = "sweeping"
@@ -349,6 +355,7 @@ PROPERTY_TO_NAME: Final = {
         "AI Obstacle Detection",
     ],
     XiaomiVacuumProperty.CLEANING_MODE: ["cleaning_mode", "Cleaning Mode"],
+    XiaomiVacuumProperty.SWEEP_ROUTE: ["cleaning_route", "Cleaning Route"],
     XiaomiVacuumProperty.SELF_WASH_BASE_STATUS: [
         "self_wash_base_status",
         "Self-Wash Base Status",
@@ -512,6 +519,13 @@ CLEANING_MODE_CODE_TO_NAME: Final = {
     XiaomiVacuumCleaningMode.SWEEPING: CLEANING_MODE_SWEEPING,
     XiaomiVacuumCleaningMode.MOPPING: CLEANING_MODE_MOPPING,
     XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING: CLEANING_MODE_SWEEPING_AND_MOPPING,
+    XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING: CLEANING_MODE_MOPPING_AFTER_SWEEPING,
+}
+
+SWEEP_ROUTE_CODE_TO_NAME: Final = {
+    XiaomiVacuumSweepRoute.QUICK: SWEEP_ROUTE_QUICK,
+    XiaomiVacuumSweepRoute.DAILY: SWEEP_ROUTE_DAILY,
+    XiaomiVacuumSweepRoute.CAREFUL: SWEEP_ROUTE_CAREFUL,
 }
 
 WATER_TANK_CODE_TO_NAME: Final = {

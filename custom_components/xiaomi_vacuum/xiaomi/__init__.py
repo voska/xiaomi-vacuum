@@ -10,6 +10,7 @@ from .types import (
     XiaomiVacuumWaterVolume,
     XiaomiVacuumMopPadHumidity,
     XiaomiVacuumCarpetSensitivity,
+    XiaomiVacuumSweepRoute,
     XiaomiVacuumTaskStatus,
     XiaomiVacuumState,
     XiaomiVacuumSelfCleanArea,

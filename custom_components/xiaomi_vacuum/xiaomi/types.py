@@ -233,6 +233,7 @@ class XiaomiVacuumCleaningMode(IntEnum):
     SWEEPING = 0
     MOPPING = 1
     SWEEPING_AND_MOPPING = 2
+    MOPPING_AFTER_SWEEPING = 3
 
 
 class XiaomiVacuumWaterTank(IntEnum):
@@ -260,6 +261,15 @@ class XiaomiVacuumMopPadHumidity(IntEnum):
     SLIGHTLY_DRY = 1
     MOIST = 2
     WET = 3
+
+
+class XiaomiVacuumSweepRoute(IntEnum):
+    """Xiaomi Vacuum cleaning route"""
+
+    UNKNOWN = -1
+    QUICK = 1
+    DAILY = 2
+    CAREFUL = 3
 
 
 class XiaomiVacuumCarpetSensitivity(IntEnum):
@@ -528,6 +538,7 @@ class XiaomiVacuumProperty(IntEnum):
     STREAM_VERIFY_CODE = 120
     STREAM_RESET_CODE = 121
     STREAM_SPACE = 122
+    SWEEP_ROUTE = 123
 
 
 class XiaomiVacuumAction(IntEnum):
@@ -750,6 +761,7 @@ XiaomiVacuumD109glPropertyMapping = {
     XiaomiVacuumProperty.FILTER_LEFT: {"siid": 14, "piid": 1},
     XiaomiVacuumProperty.FILTER_TIME_LEFT: {"siid": 14, "piid": 2},
     XiaomiVacuumProperty.DETERGENT_LEFT: {"siid": 18, "piid": 1},
+    XiaomiVacuumProperty.SWEEP_ROUTE: {"siid": 2, "piid": 74},
 }
 
 XiaomiVacuumD109glActionMapping = {
@@ -827,7 +839,7 @@ XiaomiVacuumD109glValueMapping = {
         1: XiaomiVacuumCleaningMode.SWEEPING,
         2: XiaomiVacuumCleaningMode.MOPPING,
         3: XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING,
-        4: XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING,
+        4: XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING,
     },
 }
 
