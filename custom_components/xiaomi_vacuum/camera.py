@@ -301,7 +301,10 @@ class XiaomiVacuumCameraEntity(XiaomiVacuumEntity, Camera):
         state = self.device.json_map_name or "Map"
         if state != self._state:
             self._state = state
-            self.async_write_ha_state()
+            # __init__ starts the first render, which can finish before the entity
+            # is added (or never is, if disabled); the state is picked up on add.
+            if self.hass is not None:
+                self.async_write_ha_state()
 
     def update(self) -> None:
         if self.device.json_map_supported():
