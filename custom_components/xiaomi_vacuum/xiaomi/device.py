@@ -26,6 +26,7 @@ from .types import (
     XiaomiVacuumState,
     XiaomiVacuumWaterTank,
     XiaomiVacuumCarpetSensitivity,
+    XiaomiVacuumSweepRoute,
     XiaomiVacuumStatus,
     XiaomiVacuumErrorCode,
     XiaomiVacuumRelocationStatus,
@@ -54,6 +55,7 @@ from .const import (
     MOP_PAD_HUMIDITY_CODE_TO_NAME,
     CLEANING_MODE_CODE_TO_NAME,
     CARPET_SENSITIVITY_CODE_TO_NAME,
+    SWEEP_ROUTE_CODE_TO_NAME,
     CHARGING_STATUS_CODE_TO_NAME,
     RELOCATION_STATUS_CODE_TO_NAME,
     SELF_WASH_BASE_STATUS_TO_NAME,
@@ -340,7 +342,10 @@ class XiaomiVacuumDevice:
             new_state = XiaomiVacuumState.SWEEPING
             if self.status.cleaning_mode is XiaomiVacuumCleaningMode.MOPPING:
                 new_state = XiaomiVacuumState.MOPPING
-            elif self.status.cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING:
+            elif self.status.cleaning_mode in (
+                XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING,
+                XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING,
+            ):
                 new_state = XiaomiVacuumState.SWEEPING_AND_MOPPING
             self._update_property(XiaomiVacuumProperty.STATE, new_state.value)
 
@@ -404,12 +409,24 @@ class XiaomiVacuumDevice:
                 except:
                     pass
 
+    def _mapped_cleaning_modes(self) -> set[XiaomiVacuumCleaningMode]:
+        """Cleaning modes a model with its own value map reports; empty for Dreame numbering."""
+        return set(self.value_mapping.get(XiaomiVacuumProperty.CLEANING_MODE, {}).values())
+
     def _water_tank_changed(self, previous_water_tank: Any = None) -> None:
         """Update cleaning mode on device when water tank status is changed."""
         # App does not allow you to update cleaning mode when water tank or mop pad is not installed.
         if self.get_property(XiaomiVacuumProperty.CLEANING_MODE) is not None:
             new_list = CLEANING_MODE_CODE_TO_NAME.copy()
-            if not self.status.auto_mount:
+            mapped_modes = self._mapped_cleaning_modes()
+            if mapped_modes:
+                # The model numbers its own modes; offer exactly those and let the
+                # device refuse what its current mop state does not allow.
+                new_list = {k: v for k, v in new_list.items() if k in mapped_modes}
+            else:
+                # Dreame-numbered models are not known to report this mode; keep their list as before.
+                new_list.pop(XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING)
+            if not mapped_modes and not self.status.auto_mount:
                 if not self.status.water_tank_or_mop_installed:
                     new_list.pop(XiaomiVacuumCleaningMode.MOPPING)
                     new_list.pop(XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING)
@@ -1207,6 +1224,7 @@ class XiaomiVacuumDevice:
                     XiaomiVacuumProperty.AUTO_ADD_DETERGENT,
                     XiaomiVacuumProperty.CARPET_AVOIDANCE,
                     XiaomiVacuumProperty.CLEANING_MODE,
+                    XiaomiVacuumProperty.SWEEP_ROUTE,
                     XiaomiVacuumProperty.WATER_ELECTROLYSIS,
                     XiaomiVacuumProperty.INTELLIGENT_RECOGNITION,
                     XiaomiVacuumProperty.AUTO_WATER_REFILLING,
@@ -1351,7 +1369,7 @@ class XiaomiVacuumDevice:
         if self.status.started:
             raise InvalidActionException("Cannot set cleaning mode while vacuum is running")
 
-        if not self.status.auto_mount:
+        if not self.status.auto_mount and not self._mapped_cleaning_modes():
             if cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING.value:
                 if self.status.water_tank_or_mop_installed and not self.status.mop_pad_lifting_available:
                     if self.status.self_wash_base_available:
@@ -2425,6 +2443,7 @@ class XiaomiVacuumDeviceStatus:
     mop_pad_humidity_list = {v: k for k, v in MOP_PAD_HUMIDITY_CODE_TO_NAME.items()}
     cleaning_mode_list = {v: k for k, v in CLEANING_MODE_CODE_TO_NAME.items()}
     carpet_sensitivity_list = {v: k for k, v in CARPET_SENSITIVITY_CODE_TO_NAME.items()}
+    sweep_route_list = {v: k for k, v in SWEEP_ROUTE_CODE_TO_NAME.items()}
     self_clean_area_list = {v: k for k, v in SELF_AREA_CLEAN_TO_NAME.items()}
     mop_wash_level_list = {v: k for k, v in MOP_WASH_LEVEL_TO_NAME.items()}
     mopping_type_list = {v: k for k, v in MOPPING_TYPE_TO_NAME.items()}
@@ -2759,6 +2778,20 @@ class XiaomiVacuumDeviceStatus:
         return CARPET_SENSITIVITY_CODE_TO_NAME.get(self.carpet_sensitivity, STATE_UNKNOWN)
 
     @property
+    def sweep_route(self) -> XiaomiVacuumSweepRoute:
+        """Return cleaning route of the device."""
+        value = self._get_property(XiaomiVacuumProperty.SWEEP_ROUTE)
+        if value is not None and value in XiaomiVacuumSweepRoute._value2member_map_:
+            return XiaomiVacuumSweepRoute(value)
+        _LOGGER.debug("SWEEP_ROUTE not supported: %s", value)
+        return XiaomiVacuumSweepRoute.UNKNOWN
+
+    @property
+    def sweep_route_name(self) -> str:
+        """Return cleaning route as string for translation."""
+        return SWEEP_ROUTE_CODE_TO_NAME.get(self.sweep_route, STATE_UNKNOWN)
+
+    @property
     def state(self) -> XiaomiVacuumState:
         """Return state of the device."""
         value = self._get_property(XiaomiVacuumProperty.STATE)
@@ -2818,7 +2851,10 @@ class XiaomiVacuumDeviceStatus:
         ):
             if cleaning_mode is XiaomiVacuumCleaningMode.MOPPING:
                 return XiaomiVacuumState.MOPPING
-            elif cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING:
+            elif cleaning_mode in (
+                XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING,
+                XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING,
+            ):
                 return XiaomiVacuumState.SWEEPING_AND_MOPPING
             return XiaomiVacuumState.SWEEPING
 
@@ -3038,6 +3074,7 @@ class XiaomiVacuumDeviceStatus:
         return bool(
             cleaning_mode is not XiaomiVacuumCleaningMode.MOPPING
             and cleaning_mode is not XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
+            and cleaning_mode is not XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING
         )
 
     @property

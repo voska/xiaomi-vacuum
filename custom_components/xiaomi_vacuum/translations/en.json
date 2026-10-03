@@ -127,6 +127,13 @@
           "mopping_after_sweeping": "Mopping after sweeping"
         }
       },
+      "cleaning_route": {
+        "state": {
+          "quick": "Quick",
+          "daily": "Daily",
+          "careful": "Careful"
+        }
+      },
       "carpet_sensitivity": {
         "state": {
           "low": "Low",

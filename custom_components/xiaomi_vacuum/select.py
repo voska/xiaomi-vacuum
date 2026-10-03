@@ -50,6 +50,7 @@ from .xiaomi import (
     XiaomiVacuumCarpetSensitivity,
     XiaomiVacuumMopWashLevel,
     XiaomiVacuumMoppingType,
+    XiaomiVacuumSweepRoute,
     SUCTION_LEVEL_CODE_TO_NAME,
     WATER_VOLUME_CODE_TO_NAME,
     MOP_PAD_HUMIDITY_CODE_TO_NAME,
@@ -119,13 +120,21 @@ SELECTS: tuple[XiaomiVacuumSelectEntityDescription, ...] = (
         device_class=f"{DOMAIN}__cleaning_mode",
         icon_fn=lambda value, device: (
             "mdi:hydro-power"
-            if device.status.cleaning_mode is XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING
+            if device.status.cleaning_mode
+            in (XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING, XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING)
             else "mdi:cup-water" if device.status.cleaning_mode is XiaomiVacuumCleaningMode.MOPPING else "mdi:broom"
         ),
         options=lambda device, segment: list(device.status.cleaning_mode_list),
         value_fn=lambda value, device: device.status.cleaning_mode_name,
         value_int_fn=lambda value, device: XiaomiVacuumCleaningMode[value.upper()],
         set_fn=lambda device, map_id, value: device.set_cleaning_mode(value),
+    ),
+    XiaomiVacuumSelectEntityDescription(
+        property_key=XiaomiVacuumProperty.SWEEP_ROUTE,
+        device_class=f"{DOMAIN}__cleaning_route",
+        icon="mdi:map-marker-path",
+        options=lambda device, segment: list(device.status.sweep_route_list),
+        value_int_fn=lambda value, device: XiaomiVacuumSweepRoute[value.upper()],
     ),
     XiaomiVacuumSelectEntityDescription(
         property_key=XiaomiVacuumProperty.CARPET_SENSITIVITY,
