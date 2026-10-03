@@ -951,8 +951,11 @@ class XiaomiVacuumDevice:
                 # get_info also sets the uid and the _v3 flag that selects the
                 # right file-url endpoint. Gating it on device_id being unset
                 # meant the flag stayed false and every download returned None.
-                cloud.get_info(self.mac)
-                self.json_map_cloud_ready = True
+                # Only latch once the device was found: a cloud blip at startup
+                # otherwise leaves the uid unset and every request "invalid uid".
+                self.json_map_cloud_ready = cloud.get_info(self.mac) != (None, None)
+                if not self.json_map_cloud_ready:
+                    return self.json_map_image
 
             url = cloud.get_interim_file_url(object_name)
             if not url:
