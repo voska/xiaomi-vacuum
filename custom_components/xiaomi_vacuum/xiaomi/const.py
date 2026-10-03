@@ -42,8 +42,8 @@ CLEANING_MODE_SWEEPING_AND_MOPPING: Final = "sweeping_and_mopping"
 CLEANING_MODE_MOPPING_AFTER_SWEEPING: Final = "mopping_after_sweeping"
 
 SWEEP_ROUTE_QUICK: Final = "quick"
-SWEEP_ROUTE_DAILY: Final = "daily"
-SWEEP_ROUTE_CAREFUL: Final = "careful"
+SWEEP_ROUTE_STANDARD: Final = "standard"
+SWEEP_ROUTE_DEEP: Final = "deep"
 
 STATE_UNKNOWN: Final = "unknown"
 STATE_SWEEPING: Final = "sweeping"
@@ -524,8 +524,8 @@ CLEANING_MODE_CODE_TO_NAME: Final = {
 
 SWEEP_ROUTE_CODE_TO_NAME: Final = {
     XiaomiVacuumSweepRoute.QUICK: SWEEP_ROUTE_QUICK,
-    XiaomiVacuumSweepRoute.DAILY: SWEEP_ROUTE_DAILY,
-    XiaomiVacuumSweepRoute.CAREFUL: SWEEP_ROUTE_CAREFUL,
+    XiaomiVacuumSweepRoute.STANDARD: SWEEP_ROUTE_STANDARD,
+    XiaomiVacuumSweepRoute.DEEP: SWEEP_ROUTE_DEEP,
 }
 
 WATER_TANK_CODE_TO_NAME: Final = {
