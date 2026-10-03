@@ -108,8 +108,8 @@
       "cleaning_route": {
         "state": {
           "quick": "Quick",
-          "daily": "Daily",
-          "careful": "Careful"
+          "standard": "Standard",
+          "deep": "Deep"
         }
       },
       "carpet_sensitivity": {

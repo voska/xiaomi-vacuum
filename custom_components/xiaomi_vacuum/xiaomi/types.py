@@ -268,8 +268,8 @@ class XiaomiVacuumSweepRoute(IntEnum):
 
     UNKNOWN = -1
     QUICK = 1
-    DAILY = 2
-    CAREFUL = 3
+    STANDARD = 2
+    DEEP = 3
 
 
 class XiaomiVacuumCarpetSensitivity(IntEnum):
