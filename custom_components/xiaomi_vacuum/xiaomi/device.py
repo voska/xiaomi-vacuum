@@ -957,7 +957,14 @@ class XiaomiVacuumDevice:
                 if not self.json_map_cloud_ready:
                     return self.json_map_image
 
-            url = cloud.get_interim_file_url(object_name)
+            # The property can arrive wrapped as {"index": n, "obj_name": "..."};
+            # the file-url API only accepts the inner name ("invalid uid" otherwise).
+            # The raw value stays the cache key, since index changes with each map.
+            file_name = object_name
+            if object_name.startswith("{"):
+                file_name = json.loads(object_name).get("obj_name") or object_name
+
+            url = cloud.get_interim_file_url(file_name)
             if not url:
                 return self.json_map_image
             raw = cloud.get_file(url)
