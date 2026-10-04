@@ -1000,6 +1000,8 @@ class XiaomiVacuumDevice:
                 values = self.value_mapping.get(XiaomiVacuumProperty(did))
             except ValueError:
                 return value
+            if callable(values):
+                return int(values(value))
             if values and value in values:
                 return int(values[value])
         return value

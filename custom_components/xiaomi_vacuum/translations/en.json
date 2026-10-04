@@ -407,6 +407,13 @@
           "station_disconnected": "Base station not powered on",
           "dirty_tank_level": "The water level in the used water tank is too high.",
           "washboard_level": "Water level in the washboard is too high.",
+          "bag_not_replaced": "Disposable bag not replaced for a long time",
+          "stuck": "Robot vacuum is stuck",
+          "return_to_dock_failed": "Could not return to the dock",
+          "clean_water_low": "Clean water tank is low",
+          "brush_error": "Brush error",
+          "drive_wheel": "Drive wheel error",
+          "mop_pad_holder_stuck": "Mop pad holder stuck",
           "no_mop_in_station": "Mop pad is not in the station.",
           "dust_bag_full": "Dust bag is full or vents are blocked."
         }
