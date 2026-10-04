@@ -228,6 +228,13 @@ ERROR_CLEAN_MOP_PAD: Final = "clean_mop_pad"
 ERROR_CLEAN_TANK_LEVEL: Final = "clean_tank_level"
 ERROR_DIRTY_TANK_LEVEL: Final = "dirty_tank_level"
 ERROR_WASHBOARD_LEVEL: Final = "washboard_level"
+ERROR_BAG_NOT_REPLACED: Final = "bag_not_replaced"
+ERROR_STUCK: Final = "stuck"
+ERROR_RETURN_TO_DOCK_FAILED: Final = "return_to_dock_failed"
+ERROR_CLEAN_WATER_LOW: Final = "clean_water_low"
+ERROR_BRUSH_ERROR: Final = "brush_error"
+ERROR_DRIVE_WHEEL: Final = "drive_wheel"
+ERROR_MOP_PAD_HOLDER_STUCK: Final = "mop_pad_holder_stuck"
 
 ATTR_CHARGING: Final = "charging"
 ATTR_STARTED: Final = "started"
@@ -697,6 +704,13 @@ ERROR_CODE_TO_ERROR_NAME: Final = {
     XiaomiVacuumErrorCode.CLEAN_TANK_LEVEL: ERROR_CLEAN_TANK_LEVEL,
     XiaomiVacuumErrorCode.DIRTY_TANK_LEVEL: ERROR_DIRTY_TANK_LEVEL,
     XiaomiVacuumErrorCode.WASHBOARD_LEVEL: ERROR_WASHBOARD_LEVEL,
+    XiaomiVacuumErrorCode.BAG_NOT_REPLACED: ERROR_BAG_NOT_REPLACED,
+    XiaomiVacuumErrorCode.STUCK: ERROR_STUCK,
+    XiaomiVacuumErrorCode.RETURN_TO_DOCK_FAILED: ERROR_RETURN_TO_DOCK_FAILED,
+    XiaomiVacuumErrorCode.CLEAN_WATER_LOW: ERROR_CLEAN_WATER_LOW,
+    XiaomiVacuumErrorCode.BRUSH_ERROR: ERROR_BRUSH_ERROR,
+    XiaomiVacuumErrorCode.DRIVE_WHEEL: ERROR_DRIVE_WHEEL,
+    XiaomiVacuumErrorCode.MOP_PAD_HOLDER_STUCK: ERROR_MOP_PAD_HOLDER_STUCK,
 }
 
 DUST_COLLECTION_TO_NAME: Final = {
@@ -1129,5 +1143,33 @@ ERROR_CODE_TO_ERROR_DESCRIPTION: Final = {
     XiaomiVacuumErrorCode.WASHBOARD_LEVEL: [
         "Water level in the washboard is too high.",
         "Please clean the used water tank and washboard in time.",
+    ],
+    XiaomiVacuumErrorCode.BAG_NOT_REPLACED: [
+        "The disposable bag has not been replaced for a long time",
+        "Please check the disposable bag.",
+    ],
+    XiaomiVacuumErrorCode.STUCK: [
+        "The robot vacuum is stuck",
+        "Please clear the obstacles around the robot vacuum.",
+    ],
+    XiaomiVacuumErrorCode.RETURN_TO_DOCK_FAILED: [
+        "Could not return to the dock to charge",
+        "Please move the robot vacuum to the charging dock.",
+    ],
+    XiaomiVacuumErrorCode.CLEAN_WATER_LOW: [
+        "The water level of the clean water tank is low",
+        "Please refill the clean water tank and remove the dirty water in time.",
+    ],
+    XiaomiVacuumErrorCode.BRUSH_ERROR: [
+        "Brush error",
+        "Please check and clean the brush.",
+    ],
+    XiaomiVacuumErrorCode.DRIVE_WHEEL: [
+        "Drive wheel error",
+        "Please check and clean it.",
+    ],
+    XiaomiVacuumErrorCode.MOP_PAD_HOLDER_STUCK: [
+        "Mop pad holder stuck",
+        "Please check and clean the mop pad holder.",
     ],
 }

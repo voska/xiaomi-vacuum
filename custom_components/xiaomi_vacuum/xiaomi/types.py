@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 from typing import Any, Dict, Final, List, Optional
 from enum import IntEnum, Enum
@@ -194,6 +195,16 @@ class XiaomiVacuumErrorCode(IntEnum):
     CLEAN_TANK_LEVEL = 116
     DIRTY_TANK_LEVEL = 118
     WASHBOARD_LEVEL = 119
+    # xiaomi.vacuum.d109gl reports its own six-digit fault codes. Names and
+    # texts come from the robot's own fault pushes in the Xiaomi cloud message
+    # feed; codes it has not raised yet stay UNKNOWN until observed.
+    BAG_NOT_REPLACED = 100010
+    STUCK = 210004
+    RETURN_TO_DOCK_FAILED = 210009
+    CLEAN_WATER_LOW = 210030
+    BRUSH_ERROR = 320002
+    DRIVE_WHEEL = 320004
+    MOP_PAD_HOLDER_STUCK = 320013
 
 
 class XiaomiVacuumState(IntEnum):
@@ -739,7 +750,10 @@ XiaomiVacuumActionMapping = {
 
 XiaomiVacuumD109glPropertyMapping = {
     XiaomiVacuumProperty.STATUS: {"siid": 2, "piid": 2},
-    XiaomiVacuumProperty.ERROR: {"siid": 2, "piid": 3},
+    # Fault Ids is the live {"ts": ..., "fault": [codes]} list ([0] = none).
+    # Device Fault (piid 3) latches the last code and never resets, so the
+    # sensor would keep showing a long-cleared fault.
+    XiaomiVacuumProperty.ERROR: {"siid": 2, "piid": 66},
     XiaomiVacuumProperty.CLEANING_MODE: {"siid": 2, "piid": 4},
     XiaomiVacuumProperty.CLEANED_AREA: {"siid": 2, "piid": 6},
     XiaomiVacuumProperty.CLEANING_TIME: {"siid": 2, "piid": 7},
@@ -789,6 +803,16 @@ XiaomiVacuumD109glActionMapping = {
     # room sweep whose payload omits map_uid.
     XiaomiVacuumAction.START_ROOM_SWEEP: {"siid": 2, "aiid": 16, "piid": 15, "info_piid": 16},
 }
+
+
+def _first_live_fault(value: Any) -> int:
+    """First active code in a d109gl Fault Ids payload, 0 when there is none."""
+    try:
+        faults = json.loads(value).get("fault") or []
+    except (TypeError, ValueError, AttributeError):
+        return XiaomiVacuumErrorCode.UNKNOWN
+    return next((code for code in faults if code), XiaomiVacuumErrorCode.NO_ERROR)
+
 
 # Device value -> library enum value. The d109gl reports its own numbering for
 # status, suction and sweep type, which does not line up with the Dreame values
@@ -841,6 +865,7 @@ XiaomiVacuumD109glValueMapping = {
         3: XiaomiVacuumCleaningMode.SWEEPING_AND_MOPPING,
         4: XiaomiVacuumCleaningMode.MOPPING_AFTER_SWEEPING,
     },
+    XiaomiVacuumProperty.ERROR: _first_live_fault,
 }
 
 XIAOMI_MODEL_MAPPINGS = {
