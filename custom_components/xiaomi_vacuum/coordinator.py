@@ -341,6 +341,7 @@ class XiaomiVacuumDataUpdateCoordinator(DataUpdateCoordinator[XiaomiVacuumDevice
             LOGGER.warning("Integration start failed: %s", traceback.format_exc())
             if self.device is not None:
                 self.device.listen(None)
+                self.device.listen_error(None)
                 self.device.disconnect()
                 del self.device
                 self.device = None
@@ -354,6 +355,9 @@ class XiaomiVacuumDataUpdateCoordinator(DataUpdateCoordinator[XiaomiVacuumDevice
 
     @callback
     def async_set_updated_data(self, device=None) -> None:
+        if self.device is None:
+            return
+
         if self._has_temporary_map != self.device.status.has_temporary_map:
             self._has_temporary_map_changed(self._has_temporary_map)
             self._has_temporary_map = self.device.status.has_temporary_map
@@ -386,6 +390,9 @@ class XiaomiVacuumDataUpdateCoordinator(DataUpdateCoordinator[XiaomiVacuumDevice
 
     @callback
     def async_set_update_error(self, ex) -> None:
+        if self.device is None:
+            return
+
         if self._available:
             self._available = self.device.available
             super().async_set_update_error(ex)
